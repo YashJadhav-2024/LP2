@@ -100,3 +100,498 @@
     </apex:form>
 
 </apex:page>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//=================================================================================================
+CC - EMAIL NOTIFICATION SYSTEM USING SALESFORCE
+Apex + Visualforce Application
+
+Objective:
+
+Develop an Apex program that sends an email notification using Salesforce email services.
+
+Features:
+
+* Send email to specified recipient
+* Subject and message body support
+* Attachment support
+* Invalid email validation
+* Success and error messages
+* Frontend using Visualforce page
+
+==================================================
+STEP 1 — LOGIN TO SALESFORCE
+============================
+
+Open:
+
+[https://login.salesforce.com](https://login.salesforce.com)
+
+Login to Salesforce Developer Edition.
+
+==================================================
+STEP 2 — OPEN SETUP
+===================
+
+Click Gear Icon (top right).
+
+Click:
+
+Setup
+
+==================================================
+STEP 3 — CREATE APEX CLASS
+==========================
+
+Go:
+
+Setup → Apex Classes
+
+Click:
+
+New
+
+Class Name:
+
+EmailNotificationController
+
+Delete old code completely.
+
+Paste this Apex code:
+
+public with sharing class EmailNotificationController {
+
+```
+public String recipientEmail { get; set; }
+public String subjectText { get; set; }
+public String messageBody { get; set; }
+public Blob attachmentBody { get; set; }
+public String attachmentName { get; set; }
+
+public EmailNotificationController() {
+    recipientEmail = '';
+    subjectText = '';
+    messageBody = '';
+}
+
+public PageReference sendEmail() {
+
+    if (String.isBlank(recipientEmail)) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Please enter recipient email address.'
+        ));
+        return null;
+    }
+
+    if (!isValidEmail(recipientEmail)) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Invalid email id. Please enter a valid email address.'
+        ));
+        return null;
+    }
+
+    if (String.isBlank(subjectText)) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Please enter email subject.'
+        ));
+        return null;
+    }
+
+    if (String.isBlank(messageBody)) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Please enter message body.'
+        ));
+        return null;
+    }
+
+    try {
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+
+        mail.setToAddresses(new String[] { recipientEmail });
+        mail.setSubject(subjectText);
+        mail.setPlainTextBody(messageBody);
+
+        if (attachmentBody != null && !String.isBlank(attachmentName)) {
+
+            Messaging.EmailFileAttachment attachment =
+                new Messaging.EmailFileAttachment();
+
+            attachment.setFileName(attachmentName);
+            attachment.setBody(attachmentBody);
+
+            mail.setFileAttachments(
+                new Messaging.EmailFileAttachment[] { attachment }
+            );
+        }
+
+        Messaging.SendEmailResult[] results =
+            Messaging.sendEmail(
+                new Messaging.SingleEmailMessage[] { mail }
+            );
+
+        if (results[0].isSuccess()) {
+
+            ApexPages.addMessage(new ApexPages.Message(
+                ApexPages.Severity.CONFIRM,
+                'Email sent successfully.'
+            ));
+
+            recipientEmail = '';
+            subjectText = '';
+            messageBody = '';
+            attachmentBody = null;
+            attachmentName = '';
+
+        } else {
+
+            ApexPages.addMessage(new ApexPages.Message(
+                ApexPages.Severity.ERROR,
+                'Email could not be sent: ' +
+                results[0].getErrors()[0].getMessage()
+            ));
+        }
+
+    } catch (Exception e) {
+
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Error while sending email: ' + e.getMessage()
+        ));
+    }
+
+    return null;
+}
+
+private Boolean isValidEmail(String email) {
+
+    Pattern emailPattern = Pattern.compile(
+        '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Za-z]{2,}$'
+    );
+
+    Matcher emailMatcher = emailPattern.matcher(email);
+
+    return emailMatcher.matches();
+}
+```
+
+}
+
+Click:
+
+Save
+
+==================================================
+STEP 4 — CREATE VISUALFORCE PAGE
+================================
+
+Go:
+
+Setup → Visualforce Pages
+
+Click:
+
+New
+
+Page Name:
+
+EmailNotificationPage
+
+Delete old code completely.
+
+Paste this Visualforce code:
+
+<apex:page controller="EmailNotificationController"
+showHeader="true"
+sidebar="false">
+
+```
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+    }
+
+    .container {
+        width: 600px;
+        margin: 40px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    }
+
+    .title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #1b4f72;
+        margin-bottom: 20px;
+    }
+
+    .label {
+        font-weight: bold;
+        margin-top: 12px;
+        display: block;
+    }
+
+    .inputBox {
+        width: 100%;
+        padding: 9px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .textArea {
+        width: 100%;
+        height: 120px;
+        padding: 9px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .btn {
+        margin-top: 20px;
+        width: 100%;
+        padding: 10px;
+        background: #0070d2;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #005fb2;
+    }
+
+    .msg {
+        margin-bottom: 15px;
+    }
+
+</style>
+
+<apex:form enctype="multipart/form-data">
+
+    <div class="container">
+
+        <div class="title">
+            Send Email Notification
+        </div>
+
+        <div class="msg">
+            <apex:pageMessages />
+        </div>
+
+        <label class="label">
+            Recipient Email
+        </label>
+
+        <apex:inputText value="{!recipientEmail}"
+                        styleClass="inputBox"/>
+
+        <label class="label">
+            Subject
+        </label>
+
+        <apex:inputText value="{!subjectText}"
+                        styleClass="inputBox"/>
+
+        <label class="label">
+            Message Body
+        </label>
+
+        <apex:inputTextarea value="{!messageBody}"
+                            styleClass="textArea"/>
+
+        <label class="label">
+            Attachment Optional
+        </label>
+
+        <apex:inputFile value="{!attachmentBody}"
+                        filename="{!attachmentName}"
+                        styleClass="inputBox"/>
+
+        <apex:commandButton value="Send Email"
+                            action="{!sendEmail}"
+                            styleClass="btn"/>
+
+    </div>
+
+</apex:form>
+```
+
+</apex:page>
+
+Click:
+
+Save
+
+==================================================
+STEP 5 — ENABLE EMAIL DELIVERABILITY
+====================================
+
+Go:
+
+Setup → Deliverability
+
+Find:
+
+Access Level
+
+Select:
+
+All Email
+
+Click:
+
+Save
+
+==================================================
+STEP 6 — OPEN VISUALFORCE PAGE
+==============================
+
+Go:
+
+Setup → Visualforce Pages
+
+Find:
+
+EmailNotificationPage
+
+Click:
+
+Preview
+
+==================================================
+STEP 7 — TEST VALID EMAIL
+=========================
+
+Enter:
+
+Recipient Email:
+[yourgmail@gmail.com](mailto:yourgmail@gmail.com)
+
+Subject:
+Test Email
+
+Message Body:
+Hello from Salesforce Apex Email Notification System.
+
+Optional:
+Choose any file attachment.
+
+Click:
+
+Send Email
+
+Expected:
+
+Email sent successfully.
+
+You should receive email in inbox.
+
+==================================================
+STEP 8 — TEST INVALID EMAIL
+===========================
+
+Enter:
+
+abc123
+
+Click:
+
+Send Email
+
+Expected:
+
+Invalid email id. Please enter a valid email address.
+
+==================================================
+STEP 9 — TEST EMPTY FIELDS
+==========================
+
+Leave fields empty.
+
+Click:
+
+Send Email
+
+Expected:
+
+* Please enter recipient email address.
+* Please enter email subject.
+* Please enter message body.
+
+==================================================
+STEP 10 — VERIFY ATTACHMENT
+===========================
+
+Attach any:
+
+* PDF
+* Image
+* DOC file
+
+Send email.
+
+Expected:
+Attachment received in email.
+
+==================================================
+FINAL PRACTICAL EXPLANATION
+===========================
+
+This Email Notification System is developed using Salesforce Apex and Visualforce.
+
+Apex Class:
+EmailNotificationController
+
+Visualforce Page:
+EmailNotificationPage
+
+Features:
+
+* Send email using Messaging class
+* Validate email format
+* Send attachments
+* Show success and error messages
+* User-friendly frontend
+
+Important Salesforce Classes Used:
+
+* Messaging.SingleEmailMessage
+* Messaging.sendEmail()
+* Messaging.EmailFileAttachment
+* ApexPages.Message
+
+Validation:
+Regex pattern validates email format before sending.
+
+Frontend:
+Visualforce page provides form interface for sending emails.
+
+Backend:
+Apex controller processes email request and sends notification using Salesforce email services.
