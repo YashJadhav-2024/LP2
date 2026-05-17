@@ -285,3 +285,120 @@ public class NetworkRouting {
 // Driver function of program.
 // Takes router details and connections.
 // Calls DFS and BFS traversal functions.
+
+//======================================================
+
+// Algorithm: DFS (Depth First Search)
+
+// 1. Start program
+
+// 2. Mark starting node as visited
+
+// 3. Print current node
+
+// 4. Visit first unvisited neighbor
+
+// 5. Repeat steps 2-4 recursively
+//    until no unvisited neighbor exists
+
+// 6. Backtrack to previous node
+
+// 7. Continue remaining unvisited neighbors
+
+// 8. Stop when all nodes are visited
+
+
+// DFS uses:
+// - Recursion
+// - Stack concept
+// - Goes deep first
+
+
+// -------------------------------------------------------------
+
+// Algorithm: BFS (Breadth First Search)
+
+// 1. Start program
+
+// 2. Mark starting node as visited
+
+// 3. Insert starting node into queue
+
+// 4. Remove front node from queue
+
+// 5. Print current node
+
+// 6. Insert all unvisited neighbors into queue
+
+// 7. Repeat until queue becomes empty
+
+// 8. Stop when all nodes are visited
+
+
+// BFS uses:
+// - Queue data structure
+// - Visits level by level
+// - Nearest neighbors first
+
+//=========================================================================
+
+// DFS uses Recursion and Stack
+
+// DFS goes deep into one path first.
+
+// Example Graph:
+// A -> B -> D
+// A -> C
+
+// DFS Traversal:
+// A -> B -> D
+
+// Recursion Stack:
+// TOP
+// | D |
+// | B |
+// | A |
+// BOTTOM
+
+// After finishing D,
+// stack backtracks to B then A,
+// then visits C.
+
+
+// -------------------------------------------------------------
+
+// BFS uses Queue
+
+// BFS visits nodes level by level.
+
+// Example Graph:
+//      A
+//     / \
+//    B   C
+//        |
+//        D
+
+// BFS Traversal:
+// A -> B -> C -> D
+
+// Queue Execution:
+
+// FRONT -> | A | <- REAR
+
+// Remove A
+// Insert B,C
+
+// FRONT -> | B | C | <- REAR
+
+// Remove B
+
+// FRONT -> | C | <- REAR
+
+// Remove C
+// Insert D
+
+// FRONT -> | D | <- REAR
+
+
+// DFS -> Deep first
+// BFS -> Level first
