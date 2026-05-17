@@ -104,3 +104,96 @@ public class SelectionSortApplication {
 // 120 300 999 450 750
 
 // Continue until fully sorted.
+
+//======================================================================
+
+// Selection Sort Application
+// This program sorts product prices in ascending order
+// using Selection Sort algorithm.
+
+
+// import java.util.Scanner
+// Imports Scanner class for user input.
+
+
+// Scanner sc = new Scanner(System.in)
+// Creates Scanner object for taking input.
+
+
+// int n
+// Stores number of products.
+
+
+// int prices[] = new int[n]
+// Array to store product prices.
+
+
+// for loop for input
+// Takes product prices from user and stores in array.
+
+
+// Selection Sort Logic:
+
+// Outer Loop:
+// for(int i=0; i<n-1; i++)
+
+// Represents current position where smallest element
+// should be placed.
+
+
+// int minIndex = i
+// Assumes current element is smallest.
+
+
+// Inner Loop:
+// for(int j=i+1; j<n; j++)
+
+// Searches remaining array for smaller element.
+
+
+// if(prices[j] < prices[minIndex])
+
+// Updates minIndex if smaller element found.
+
+
+// Swapping:
+
+// int temp = prices[i]
+// prices[i] = prices[minIndex]
+// prices[minIndex] = temp
+
+// Swaps smallest element with current position.
+
+
+// Example:
+
+// Array:
+// 450 120 999 300 750
+
+// Pass 1:
+// Smallest = 120
+// Swap with 450
+
+// Result:
+// 120 450 999 300 750
+
+
+// Pass 2:
+// Smallest = 300
+// Swap with 450
+
+// Result:
+// 120 300 999 450 750
+
+
+// System.out.print()
+// Prints sorted prices.
+
+
+// sc.close()
+// Closes Scanner object.
+
+
+// main()
+// Driver function of program.
+// Execution starts from here.
