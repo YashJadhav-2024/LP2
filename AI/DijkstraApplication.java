@@ -79,3 +79,148 @@ public class DijkstraApplication {
         sc.close();
     }
 }
+
+//--------------------------------------------------------------------------
+// Algorithm: Dijkstra's Shortest Path Algorithm
+
+// 1. Start program
+
+// 2. Input number of cities(vertices)
+
+// 3. Input adjacency matrix of graph
+
+// 4. Input source city
+
+// 5. Initialize:
+//      distance[] = INF
+//      visited[] = false
+
+// 6. Set source distance = 0
+
+// 7. Repeat vertices-1 times:
+//      a. Find unvisited city with minimum distance
+//      b. Mark city as visited
+//      c. Update distances of neighboring cities
+
+// 8. Print shortest distance from source
+//    to all cities
+
+// 9. End
+
+//===================================================================================
+// Example Inputs
+
+// Enter number of cities:
+// 5
+
+// Enter adjacency matrix:
+
+// 0 10 0 30 100
+// 10 0 50 0 0
+// 0 50 0 20 10
+// 30 0 20 0 60
+// 100 0 10 60 0
+
+// Enter source city:
+// 0
+
+
+// Output:
+
+// City    Shortest Distance from Source
+
+// 0       0
+// 1       10
+// 2       50
+// 3       30
+// 4       60
+
+//======================================================================================
+// Dijkstra's Algorithm Application
+// Finds shortest distance from one city
+// to all other cities.
+
+
+// static final int INF = 99999
+// Represents infinity/very large value.
+
+
+// int graph[][]
+// Adjacency matrix representation of graph.
+// graph[i][j] stores distance between cities.
+
+
+// findMinDistance(distance, visited, vertices)
+
+// Finds unvisited city with minimum distance.
+
+
+// int min = INF
+// Stores minimum distance value.
+
+
+// visited[]
+// Tracks visited cities.
+// true -> city visited
+// false -> city not visited.
+
+
+// distance[]
+// Stores shortest distance from source city.
+
+
+// distance[source] = 0
+// Distance from source to itself is zero.
+
+
+// for(count = 0; count < vertices-1; count++)
+
+// Repeats process for all cities.
+
+
+// int u = findMinDistance(...)
+
+// Selects nearest unvisited city.
+
+
+// visited[u] = true
+// Marks city as visited.
+
+
+// Relaxation Condition:
+
+// if(!visited[v] && graph[u][v] != 0
+//    && distance[u] + graph[u][v] < distance[v])
+
+// Updates shorter path if found.
+
+
+// distance[v] = distance[u] + graph[u][v]
+
+// Updates shortest distance.
+
+
+// Adjacency Matrix Example:
+
+// 0 10 0 30 100
+// 10 0 50 0 0
+
+// Means:
+// City 0 -> City 1 = 10
+// City 0 -> City 3 = 30
+
+
+// Dijkstra's Algorithm:
+// Greedy shortest path algorithm.
+
+
+// Used in:
+// - GPS Navigation
+// - Network Routing
+// - Maps
+// - Internet Routing
+
+
+// main()
+// Driver function of program.
+// Execution starts from here.
