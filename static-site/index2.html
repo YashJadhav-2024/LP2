@@ -1,0 +1,321 @@
+```text
+==============================
+CREATE STATIC WEBSITE EC2 INSTANCE
+==============================
+
+1. Go to:
+   AWS Console → EC2 → Launch Instance
+
+--------------------------------------------------
+INSTANCE SETTINGS
+--------------------------------------------------
+
+2. Name:
+   static-website-server
+
+3. AMI:
+   Ubuntu Server 24.04 LTS
+
+4. Instance Type:
+   t3.micro
+
+--------------------------------------------------
+KEY PAIR
+--------------------------------------------------
+
+5. Create new key pair
+
+   Key pair name:
+   static-website-new
+
+   Type:
+   RSA
+
+   Format:
+   .pem
+
+6. Click:
+   Create key pair
+
+7. PEM file downloads automatically:
+   static-website-new.pem
+
+--------------------------------------------------
+NETWORK SETTINGS
+--------------------------------------------------
+
+8. Click:
+   Edit
+
+9. Auto-assign Public IP:
+   Enable
+
+10. Create security group:
+    static-website-sg
+
+--------------------------------------------------
+INBOUND RULES
+--------------------------------------------------
+
+11. Add these rules:
+
+Rule 1
+Type: SSH
+Port: 22
+Source: My IP
+
+Rule 2
+Type: HTTP
+Port: 80
+Source: Anywhere IPv4
+
+Rule 3
+Type: HTTPS
+Port: 443
+Source: Anywhere IPv4
+
+--------------------------------------------------
+LAUNCH INSTANCE
+--------------------------------------------------
+
+12. Click:
+    Launch Instance
+
+13. Wait until:
+    Instance state = Running
+    Status checks = 3/3 checks passed
+
+--------------------------------------------------
+COPY PUBLIC IP
+--------------------------------------------------
+
+14. Go to:
+    EC2 → Instances
+
+15. Copy:
+    Public IPv4 address
+
+Example:
+13.60.162.216
+
+--------------------------------------------------
+WSL TERMINAL COMMANDS
+--------------------------------------------------
+
+16. Open Ubuntu / WSL terminal
+
+17. Go to Windows Downloads folder:
+
+    cd /mnt/c/Users/jadha/Downloads
+
+18. Copy PEM file to Linux home directory:
+
+    cp static-website-new.pem ~
+
+19. Go to Linux home directory:
+
+    cd ~
+
+20. Check PEM exists:
+
+    ls
+
+21. Give correct permissions:
+
+    chmod 400 static-website-new.pem
+
+22. Verify permissions:
+
+    ls -l static-website-new.pem
+
+Correct output:
+-r--------
+
+--------------------------------------------------
+CONNECT TO EC2
+--------------------------------------------------
+
+23. Connect using SSH:
+
+    ssh -i static-website-new.pem ubuntu@13.60.162.216
+
+24. If asked:
+
+    Are you sure you want to continue connecting?
+
+Type:
+yes
+
+--------------------------------------------------
+SUCCESSFUL LOGIN
+--------------------------------------------------
+
+25. You should now see:
+
+ubuntu@ip-172-31-xx-xx:~$
+
+--------------------------------------------------
+INSTALL NGINX
+--------------------------------------------------
+
+26. Update packages:
+
+    sudo apt update
+
+27. Install Nginx:
+
+    sudo apt install nginx -y
+
+28. Start Nginx:
+
+    sudo systemctl start nginx
+
+29. Enable Nginx:
+
+    sudo systemctl enable nginx
+
+30. Check status:
+
+    sudo systemctl status nginx
+
+--------------------------------------------------
+CHECK WEBSITE
+--------------------------------------------------
+
+31. Open browser:
+
+    http://13.60.162.216
+
+32. Default Nginx page should appear.
+
+--------------------------------------------------
+CREATE WEBSITE FILES
+--------------------------------------------------
+
+33. Open NEW WSL terminal
+
+34. Go to Linux home directory:
+
+    cd ~
+
+35. Create website folder:
+
+    mkdir static-website
+
+36. Open folder:
+
+    cd static-website
+
+37. Create files:
+
+    touch index.html style.css script.js
+
+--------------------------------------------------
+EDIT WEBSITE
+--------------------------------------------------
+
+38. Edit HTML:
+
+    nano index.html
+
+39. Edit CSS:
+
+    nano style.css
+
+40. Edit JS:
+
+    nano script.js
+
+--------------------------------------------------
+SAVE NANO FILES
+--------------------------------------------------
+
+41. Save:
+    Ctrl + O
+    Enter
+
+42. Exit:
+    Ctrl + X
+
+--------------------------------------------------
+UPLOAD WEBSITE FILES
+--------------------------------------------------
+
+43. Upload files to EC2:
+
+    scp -i ~/static-website-new.pem ~/static-website/index.html ~/static-website/style.css ~/static-website/script.js ubuntu@13.60.162.216:/home/ubuntu/
+
+--------------------------------------------------
+COPY FILES TO WEB SERVER
+--------------------------------------------------
+
+44. SSH into EC2 again:
+
+    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
+
+45. Remove default Nginx page:
+
+    sudo rm /var/www/html/index.nginx-debian.html
+
+46. Copy files:
+
+    sudo cp /home/ubuntu/index.html /var/www/html/
+
+    sudo cp /home/ubuntu/style.css /var/www/html/
+
+    sudo cp /home/ubuntu/script.js /var/www/html/
+
+47. Reload Nginx:
+
+    sudo systemctl reload nginx
+
+--------------------------------------------------
+FINAL OUTPUT
+--------------------------------------------------
+
+48. Open browser:
+
+    http://13.60.162.216
+
+49. Your website should appear successfully.
+
+--------------------------------------------------
+REMOTE WEBSITE UPDATE
+--------------------------------------------------
+
+50. To update website later:
+
+    cd ~/static-website
+
+51. Upload updated files:
+
+    scp -i ~/static-website-new.pem index.html style.css script.js ubuntu@13.60.162.216:/home/ubuntu/
+
+52. SSH into EC2:
+
+    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
+
+53. Copy updated files:
+
+    sudo cp /home/ubuntu/index.html /var/www/html/
+
+    sudo cp /home/ubuntu/style.css /var/www/html/
+
+    sudo cp /home/ubuntu/script.js /var/www/html/
+
+54. Reload Nginx:
+
+    sudo systemctl reload nginx
+
+55. Refresh browser to see updates.
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+- Use PUBLIC IPv4 only for SSH.
+- Use chmod 400 for PEM file.
+- Keep PEM inside Linux home directory.
+- Do not use PEM directly from /mnt/c.
+- Wait for 3/3 checks passed before SSH.
+```
