@@ -165,3 +165,603 @@ public class ProductInventoryController {
         return year + '-' + month + '-' + day;
     }
 }
+
+
+
+
+//===========================================
+CC - PRODUCT INVENTORY MANAGEMENT SYSTEM
+Salesforce Apex + Visualforce Application
+
+Objective:
+
+Develop a Salesforce application using Apex and Visualforce to manage Product Inventory records.
+
+Fields:
+
+* Product Name
+* Serial Number
+* Manufacture Date
+* Expiry Date
+
+The system supports:
+
+* Add Product
+* Update Product
+* Delete Product
+* Display Product List
+
+==================================================
+STEP 1 — LOGIN TO SALESFORCE
+============================
+
+Open:
+
+https://login.salesforce.com
+
+Login to Salesforce Developer Edition.
+
+==================================================
+STEP 2 — OPEN SETUP
+===================
+
+Click Gear Icon (top right).
+
+Click:
+
+Setup
+
+==================================================
+STEP 3 — CREATE CUSTOM OBJECT
+=============================
+
+Go to:
+
+Object Manager
+
+Click:
+
+Create → Custom Object
+
+Enter:
+
+Label:
+Product Inventory
+
+Plural Label:
+Product Inventories
+
+Object Name:
+Product_Inventory
+
+Record Name:
+Product Name
+
+Data Type:
+Text
+
+Tick:
+
+* Allow Reports
+* Allow Search
+* Launch New Custom Tab Wizard
+
+Click:
+
+Save
+
+==================================================
+STEP 4 — CREATE TAB
+===================
+
+If Tab Wizard opens:
+
+Select any Tab Style.
+
+Click:
+Next → Next → Save
+
+If wizard does not open:
+
+Go Setup → Tabs
+
+Under:
+Custom Object Tabs
+
+Click:
+New
+
+Select:
+Product Inventory
+
+Choose any style.
+
+Click:
+Next → Next → Save
+
+==================================================
+STEP 5 — CREATE SERIAL NUMBER FIELD
+===================================
+
+Go:
+
+Object Manager → Product Inventory
+
+Click:
+
+Fields & Relationships
+
+Click:
+
+New
+
+Select:
+
+Text
+
+Click Next
+
+Enter:
+
+Field Label:
+Serial No
+
+Length:
+50
+
+Field Name:
+Serial_No
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 6 — CREATE MANUFACTURE DATE FIELD
+======================================
+
+Select:
+
+Date
+
+Click Next
+
+Enter:
+
+Field Label:
+Manufacture Date
+
+Field Name:
+Manufacture_Date
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 7 — CREATE EXPIRY DATE FIELD
+=================================
+
+Select:
+
+Date
+
+Click Next
+
+Enter:
+
+Field Label:
+Expiry Date
+
+Field Name:
+Expiry_Date
+
+Click:
+Next → Next → Save
+
+==================================================
+STEP 8 — CREATE APEX CONTROLLER
+===============================
+
+Go:
+
+Setup → Apex Classes
+
+Click:
+
+New
+
+Class Name:
+
+ProductInventoryController
+
+Delete old code completely.
+
+Paste this Apex code: 
+
+public class ProductInventoryController {
+
+```
+public Product_Inventory__c product { get; set; }
+public List<Product_Inventory__c> productList { get; set; }
+
+public String manufactureDateText { get; set; }
+public String expiryDateText { get; set; }
+
+public ProductInventoryController() {
+    product = new Product_Inventory__c();
+    manufactureDateText = '';
+    expiryDateText = '';
+    loadProducts();
+}
+
+public void loadProducts() {
+    productList = [
+        SELECT Id, Name, Serial_No__c, Manufacture_Date__c, Expiry_Date__c
+        FROM Product_Inventory__c
+        ORDER BY CreatedDate DESC
+    ];
+}
+
+public PageReference saveProduct() {
+    try {
+        product.Manufacture_Date__c = convertTextToDate(manufactureDateText);
+        product.Expiry_Date__c = convertTextToDate(expiryDateText);
+
+        insert product;
+
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.CONFIRM,
+            'Product saved successfully!'
+        ));
+
+        clearValues();
+        loadProducts();
+
+    } catch (Exception e) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Error: Please select valid dates.'
+        ));
+    }
+
+    return null;
+}
+
+public PageReference editProduct() {
+    try {
+        Id productId = ApexPages.currentPage().getParameters().get('pid');
+
+        product = [
+            SELECT Id, Name, Serial_No__c, Manufacture_Date__c, Expiry_Date__c
+            FROM Product_Inventory__c
+            WHERE Id = :productId
+            LIMIT 1
+        ];
+
+        manufactureDateText = convertDateToText(product.Manufacture_Date__c);
+        expiryDateText = convertDateToText(product.Expiry_Date__c);
+
+    } catch (Exception e) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Error while editing product.'
+        ));
+    }
+
+    return null;
+}
+
+public PageReference updateProduct() {
+    try {
+        product.Manufacture_Date__c = convertTextToDate(manufactureDateText);
+        product.Expiry_Date__c = convertTextToDate(expiryDateText);
+
+        update product;
+
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.CONFIRM,
+            'Product updated successfully!'
+        ));
+
+        clearValues();
+        loadProducts();
+
+    } catch (Exception e) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Error: Please select valid dates.'
+        ));
+    }
+
+    return null;
+}
+
+public PageReference deleteProduct() {
+    try {
+        Id productId = ApexPages.currentPage().getParameters().get('pid');
+
+        Product_Inventory__c p = [
+            SELECT Id
+            FROM Product_Inventory__c
+            WHERE Id = :productId
+            LIMIT 1
+        ];
+
+        delete p;
+
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.CONFIRM,
+            'Product deleted successfully!'
+        ));
+
+        clearValues();
+        loadProducts();
+
+    } catch (Exception e) {
+        ApexPages.addMessage(new ApexPages.Message(
+            ApexPages.Severity.ERROR,
+            'Error while deleting product.'
+        ));
+    }
+
+    return null;
+}
+
+public PageReference clearForm() {
+    clearValues();
+    return null;
+}
+
+public void clearValues() {
+    product = new Product_Inventory__c();
+    manufactureDateText = '';
+    expiryDateText = '';
+}
+
+public Date convertTextToDate(String dateValue) {
+    if (String.isBlank(dateValue)) {
+        return null;
+    }
+
+    return Date.valueOf(dateValue);
+}
+
+public String convertDateToText(Date d) {
+    if (d == null) {
+        return '';
+    }
+
+    String month = String.valueOf(d.month());
+    String day = String.valueOf(d.day());
+    String year = String.valueOf(d.year());
+
+    if (month.length() == 1) {
+        month = '0' + month;
+    }
+
+    if (day.length() == 1) {
+        day = '0' + day;
+    }
+
+    return year + '-' + month + '-' + day;
+}
+```
+
+}
+
+Click:
+
+Save
+
+==================================================
+STEP 9 — CREATE VISUALFORCE PAGE
+================================
+
+Go:
+
+Setup → Visualforce Pages
+
+Click:
+
+New
+
+Page Name:
+
+ProductInventoryPage
+
+Paste this code:
+
+<apex:page controller="ProductInventoryController">
+
+```
+<apex:form>
+
+    <apex:pageBlock title="Product Inventory Management System">
+
+        <apex:pageMessages />
+
+        <apex:pageBlockSection columns="2">
+
+            <apex:inputText value="{!product.Name}" label="Product Name"/>
+
+            <apex:inputText value="{!product.Serial_No__c}" label="Serial No"/>
+
+            <apex:inputText value="{!manufactureDateText}" label="Manufacture Date"/>
+
+            <apex:inputText value="{!expiryDateText}" label="Expiry Date"/>
+
+        </apex:pageBlockSection>
+
+        <apex:pageBlockButtons>
+
+            <apex:commandButton value="Save Product"
+                                action="{!saveProduct}"
+                                rerender="tableBlock"/>
+
+            <apex:commandButton value="Update Product"
+                                action="{!updateProduct}"
+                                rerender="tableBlock"/>
+
+            <apex:commandButton value="Clear"
+                                action="{!clearForm}"
+                                rerender="tableBlock"/>
+
+        </apex:pageBlockButtons>
+
+    </apex:pageBlock>
+
+    <apex:pageBlock title="Product List" id="tableBlock">
+
+        <apex:pageBlockTable value="{!productList}" var="p">
+
+            <apex:column value="{!p.Name}" headerValue="Product Name"/>
+
+            <apex:column value="{!p.Serial_No__c}" headerValue="Serial No"/>
+
+            <apex:column value="{!p.Manufacture_Date__c}" headerValue="Manufacture Date"/>
+
+            <apex:column value="{!p.Expiry_Date__c}" headerValue="Expiry Date"/>
+
+            <apex:column headerValue="Edit">
+
+                <apex:commandLink value="Edit"
+                                  action="{!editProduct}">
+                    <apex:param name="pid"
+                                value="{!p.Id}"
+                                assignTo="{!product.Id}"/>
+                </apex:commandLink>
+
+            </apex:column>
+
+            <apex:column headerValue="Delete">
+
+                <apex:commandLink value="Delete"
+                                  action="{!deleteProduct}">
+                    <apex:param name="pid"
+                                value="{!p.Id}"
+                                assignTo="{!product.Id}"/>
+                </apex:commandLink>
+
+            </apex:column>
+
+        </apex:pageBlockTable>
+
+    </apex:pageBlock>
+
+</apex:form>
+```
+
+</apex:page>
+
+Click:
+
+Save
+
+==================================================
+STEP 10 — OPEN VISUALFORCE PAGE
+===============================
+
+Open page URL:
+
+https://YOURDOMAIN.visualforce.com/apex/ProductInventoryPage
+
+OR
+
+Click:
+
+Preview
+
+==================================================
+STEP 11 — TEST APPLICATION
+==========================
+
+Enter:
+
+Product Name:
+Laptop
+
+Serial No:
+LAP12345
+
+Manufacture Date:
+2025-01-10
+
+Expiry Date:
+2028-01-10
+
+Click:
+
+Save Product
+
+Expected:
+
+Product saved successfully!
+
+==================================================
+STEP 12 — TEST UPDATE
+=====================
+
+Click:
+
+Edit
+
+Modify values.
+
+Click:
+
+Update Product
+
+Expected:
+
+Product updated successfully!
+
+==================================================
+STEP 13 — TEST DELETE
+=====================
+
+Click:
+
+Delete
+
+Expected:
+
+Product deleted successfully!
+
+==================================================
+FINAL PRACTICAL EXPLANATION
+===========================
+
+This Product Inventory Management System is developed using Salesforce Apex and Visualforce.
+
+Custom Object:
+Product_Inventory__c
+
+Fields:
+
+* Product Name
+* Serial No
+* Manufacture Date
+* Expiry Date
+
+Apex Controller:
+ProductInventoryController
+
+Features:
+
+* Insert Product
+* Update Product
+* Delete Product
+* Display Product List
+
+Visualforce page provides UI for inventory management.
+
+SOQL queries are used to fetch records.
+
+DML operations:
+
+* insert
+* update
+* delete
+
+Date conversion methods are used for handling date values properly.
+
+Page messages show success and error notifications.
