@@ -1,0 +1,493 @@
+# AWS EC2 BLOG APP DEPLOYMENT USING UBUNTU LINUX
+
+## TECHNOLOGIES USED
+
+* Frontend: React + Vite
+* Backend: Node.js + Express
+* Database: MongoDB using Docker
+* Server: AWS EC2 Ubuntu 24.04
+* Web Server: Nginx
+* Process Manager: PM2
+* Environment: Ubuntu Linux
+
+---
+
+## STEP 1 — CREATE AWS EC2 INSTANCE
+
+Open AWS Console.
+
+Go to EC2 → Launch Instance.
+
+Use:
+
+Name:
+blog-app-server
+
+AMI:
+Ubuntu Server 24.04 LTS
+
+Instance type:
+t3.micro
+
+Key Pair:
+Create new key pair
+
+Key name:
+blog-practical-key
+
+Format:
+.pem
+
+Download:
+blog-practical-key.pem
+
+---
+
+## STEP 2 — CONFIGURE SECURITY GROUP
+
+Add inbound rules:
+
+| Type       | Port | Source        |
+| ---------- | ---- | ------------- |
+| SSH        | 22   | My IP         |
+| HTTP       | 80   | Anywhere IPv4 |
+| HTTPS      | 443  | Anywhere IPv4 |
+| Custom TCP | 5000 | Anywhere IPv4 |
+| Custom TCP | 5173 | Anywhere IPv4 |
+
+Launch instance.
+
+---
+
+## STEP 3 — OPEN TERMINAL IN UBUNTU
+
+Open Ubuntu terminal.
+
+Go to Downloads:
+
+cd ~/Downloads
+
+Check files:
+
+ls
+
+You should see:
+
+blog-practical-key.pem
+
+---
+
+## STEP 4 — COPY PEM FILE TO HOME
+
+cp blog-practical-key.pem ~/
+
+Go home:
+
+cd ~
+
+Give permission:
+
+chmod 400 blog-practical-key.pem
+
+Verify:
+
+ls -l blog-practical-key.pem
+
+Expected:
+
+-r--------
+
+---
+
+## STEP 5 — CONNECT TO EC2
+
+Find Public IPv4 from AWS.
+
+Connect:
+
+ssh -i blog-practical-key.pem ubuntu@YOUR_PUBLIC_IP
+
+Example:
+
+ssh -i blog-practical-key.pem ubuntu@16.171.249.215
+
+If asked:
+
+Are you sure you want to continue connecting?
+
+Type:
+
+yes
+
+---
+
+## STEP 6 — UPDATE UBUNTU SERVER
+
+sudo apt update
+
+sudo apt upgrade -y
+
+---
+
+## STEP 7 — INSTALL REQUIRED SOFTWARE
+
+Install Git, Docker, Nginx:
+
+sudo apt install git nginx docker.io -y
+
+Install Node.js 20:
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+sudo apt install nodejs -y
+
+Check versions:
+
+node -v
+
+npm -v
+
+git --version
+
+docker --version
+
+nginx -v
+
+---
+
+## STEP 8 — START DOCKER
+
+sudo systemctl start docker
+
+sudo systemctl enable docker
+
+sudo usermod -aG docker ubuntu
+
+newgrp docker
+
+Check Docker:
+
+docker ps
+
+---
+
+## STEP 9 — INSTALL DOCKER COMPOSE
+
+sudo apt install docker-compose -y
+
+---
+
+## STEP 10 — CLONE GITHUB REPOSITORY
+
+Go home:
+
+cd ~
+
+Clone repository:
+
+git clone https://github.com/YOUR_USERNAME/LP2.git
+
+Example:
+
+git clone https://github.com/YashJadhav-2024/LP2.git
+
+Go project folder:
+
+cd LP2/blog-app-cloud
+
+Check files:
+
+ls
+
+Expected:
+
+backend
+frontend
+docker-compose.yml
+
+---
+
+## STEP 11 — UPDATE FRONTEND API IP
+
+Open App.jsx:
+
+nano frontend/src/App.jsx
+
+Find:
+
+const API = "http://OLD_IP:5000/api/posts";
+
+Replace:
+
+const API = "http://YOUR_PUBLIC_IP:5000/api/posts";
+
+Example:
+
+const API = "http://16.171.249.215:5000/api/posts";
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+---
+
+## STEP 12 — START MONGODB USING DOCKER
+
+Inside project folder:
+
+docker-compose up -d
+
+Check container:
+
+docker ps
+
+Expected:
+
+blog-mongodb
+
+---
+
+## STEP 13 — CREATE BACKEND .ENV FILE
+
+Go backend:
+
+cd backend
+
+Create .env:
+
+nano .env
+
+Paste:
+
+MONGO_URI=mongodb://localhost:27017/blogDB
+PORT=5000
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+---
+
+## STEP 14 — UPDATE SERVER.JS FOR EXTERNAL ACCESS
+
+Open server.js:
+
+nano server.js
+
+Find:
+
+app.listen(PORT)
+
+Replace with:
+
+app.listen(PORT, "0.0.0.0", () => {
+console.log(`Server running on port ${PORT}`);
+});
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+---
+
+## STEP 15 — RUN BACKEND
+
+Install backend dependencies:
+
+npm install
+
+Start backend:
+
+npm start
+
+Expected:
+
+MongoDB connected successfully
+Server running on port 5000
+
+Test backend:
+
+http://YOUR_PUBLIC_IP:5000
+
+Expected:
+
+Blog backend is running successfully
+
+Keep terminal open.
+
+---
+
+## STEP 16 — OPEN SECOND TERMINAL
+
+Open new Ubuntu terminal.
+
+Go home:
+
+cd ~
+
+Connect EC2:
+
+ssh -i blog-practical-key.pem ubuntu@YOUR_PUBLIC_IP
+
+---
+
+## STEP 17 — RUN FRONTEND
+
+Go frontend:
+
+cd ~/LP2/blog-app-cloud/frontend
+
+Install dependencies:
+
+npm install
+
+Run frontend:
+
+npm run dev -- --host
+
+Open:
+
+http://YOUR_PUBLIC_IP:5173
+
+Test:
+
+* Create Post
+* View Post
+* Delete Post
+
+---
+
+## STEP 18 — FINAL DEPLOYMENT USING NGINX
+
+Stop frontend:
+
+CTRL + C
+
+Build frontend:
+
+npm run build
+
+Remove old Nginx page:
+
+sudo rm -rf /var/www/html/*
+
+Copy React build:
+
+sudo cp -r dist/* /var/www/html/
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+Enable Nginx:
+
+sudo systemctl enable nginx
+
+Open final frontend:
+
+http://YOUR_PUBLIC_IP
+
+---
+
+## STEP 19 — KEEP BACKEND RUNNING USING PM2
+
+Go backend terminal.
+
+Stop backend:
+
+CTRL + C
+
+Install PM2:
+
+sudo npm install -g pm2
+
+Go backend:
+
+cd ~/LP2/blog-app-cloud/backend
+
+Start backend using PM2:
+
+pm2 start server.js --name blog-backend
+
+Save PM2 process:
+
+pm2 save
+
+Check PM2:
+
+pm2 list
+
+Expected:
+
+blog-backend online
+
+---
+
+## FINAL TESTING URLS
+
+Frontend:
+
+http://YOUR_PUBLIC_IP
+
+Backend:
+
+http://YOUR_PUBLIC_IP:5000
+
+API:
+
+http://YOUR_PUBLIC_IP:5000/api/posts
+
+---
+
+## USEFUL COMMANDS
+
+Check backend:
+
+pm2 list
+
+Restart backend:
+
+pm2 restart blog-backend
+
+Backend logs:
+
+pm2 logs blog-backend
+
+Check Docker:
+
+docker ps
+
+Check Nginx:
+
+sudo systemctl status nginx
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+---
+
+## FINAL RESULT
+
+The Online Blog Application was successfully deployed on AWS EC2 Ubuntu using Ubuntu Linux environment.
+
+Frontend:
+React + Vite served using Nginx
+
+Backend:
+Node.js + Express managed using PM2
+
+Database:
+MongoDB running inside Docker container
+
+The application supports:
+
+* Create blog posts
+* View blog posts
+* Delete blog posts
