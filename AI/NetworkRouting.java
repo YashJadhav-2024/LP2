@@ -126,3 +126,162 @@ public class NetworkRouting {
         sc.close();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// DFS and BFS Network Routing Program
+
+// This program represents a computer network using Graph data structure.
+// Routers are vertices/nodes.
+// Connections between routers are edges.
+
+// DFS -> Depth First Search
+// BFS -> Breadth First Search
+
+// -------------------------------------------------------------
+
+// import java.util.*
+// Imports utility classes like LinkedList, Queue and Scanner.
+
+
+// class NetworkRouting
+// Main class of program.
+
+
+// int vertices
+// Stores number of routers/nodes.
+
+
+// LinkedList<Integer>[] adj
+// Adjacency list representation of graph.
+// Stores neighbors/connections of each router.
+
+
+// String[] routerNames
+// Stores names of routers.
+
+
+// NetworkRouting(int v)
+// Constructor.
+// Initializes graph with given number of vertices.
+
+
+// adj[i] = new LinkedList<Integer>()
+// Creates linked list for every router.
+
+
+// addRouter(int id, String name)
+// Assigns name to router index.
+
+
+// addConnection(int v, int w)
+// Adds connection between two routers.
+// Since graph is undirected:
+// v -> w
+// w -> v
+
+
+// displayRouters()
+// Displays all routers with indexes.
+
+
+// displayNetwork()
+// Prints adjacency list/network structure.
+
+
+// DFS(int start)
+// Starts DFS traversal from given router.
+
+
+// boolean[] visited
+// Tracks visited routers to avoid revisiting.
+
+
+// DFSUtil(int v, boolean[] visited)
+// Recursive helper function for DFS traversal.
+
+
+// visited[v] = true
+// Marks current router as visited.
+
+
+// for (int neighbor : adj[v])
+// Traverses all neighboring routers.
+
+
+// if (!visited[neighbor])
+// Visits only unvisited neighbors.
+
+
+// DFS uses:
+// - Recursion
+// - Stack concept
+// - Goes deep first before backtracking.
+
+
+// BFS(int start)
+// Starts Breadth First Search traversal.
+
+
+// Queue<Integer> queue
+// Queue used in BFS traversal.
+
+
+// queue.add(start)
+// Inserts starting router into queue.
+
+
+// queue.poll()
+// Removes front element from queue.
+
+
+// BFS visits:
+// - Level by level
+// - Nearest neighbors first.
+
+
+// visited[neighbor] = true
+// Marks neighbor visited before adding to queue.
+
+
+// Scanner sc
+// Used for taking user input.
+
+
+// nextInt()
+// Takes integer input.
+
+
+// nextLine()
+// Takes string input.
+
+
+// sc.close()
+// Closes scanner object.
+
+
+// main()
+// Driver function of program.
+// Takes router details and connections.
+// Calls DFS and BFS traversal functions.
