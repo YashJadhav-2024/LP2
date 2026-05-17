@@ -1,192 +1,321 @@
-Secure File Sharing Between Two AWS EC2 Instances
+```text
+==============================
+CREATE STATIC WEBSITE EC2 INSTANCE
+==============================
 
-Your instance details:
+1. Go to:
+   AWS Console → EC2 → Launch Instance
 
-Sender public IP: 18.207.93.0
-Sender private IP: 172.31.22.32
+--------------------------------------------------
+INSTANCE SETTINGS
+--------------------------------------------------
 
-Receiver public IP: 184.73.191.101
-Receiver private IP: 172.31.19.236
+2. Name:
+   static-website-server
 
-Key files in Downloads:
-sender.pem
-reciever.pem
+3. AMI:
+   Ubuntu Server 24.04 LTS
 
+4. Instance Type:
+   t3.micro
 
-Step 1: Open terminal on your Mac
+--------------------------------------------------
+KEY PAIR
+--------------------------------------------------
 
-cd ~/Downloads
-ls
+5. Create new key pair
 
+   Key pair name:
+   static-website-new
 
-Step 2: Set permission for both key files
+   Type:
+   RSA
 
-chmod 400 sender.pem
-chmod 400 reciever.pem
+   Format:
+   .pem
 
+6. Click:
+   Create key pair
 
-Step 3: Connect to sender instance
+7. PEM file downloads automatically:
+   static-website-new.pem
 
-ssh -i ~/Downloads/sender.pem ubuntu@18.207.93.0
+--------------------------------------------------
+NETWORK SETTINGS
+--------------------------------------------------
 
+8. Click:
+   Edit
 
-Step 4: Create a folder and file on sender instance
+9. Auto-assign Public IP:
+   Enable
 
-mkdir secure-sharing
-cd secure-sharing
-echo "This file is securely transferred from sender EC2 to receiver EC2." > file.txt
-cat file.txt
+10. Create security group:
+    static-website-sg
 
+--------------------------------------------------
+INBOUND RULES
+--------------------------------------------------
 
-Step 5: Open a new terminal on your Mac
+11. Add these rules:
 
-cd ~/Downloads
-
-
-Step 6: Copy receiver key to sender instance temporarily
-
-scp -i ~/Downloads/sender.pem ~/Downloads/reciever.pem ubuntu@18.207.93.0:/home/ubuntu/
-
-
-Step 7: Go back to sender instance terminal
-
-cd ~/secure-sharing
-mv /home/ubuntu/reciever.pem .
-chmod 400 reciever.pem
-ls -l
-
-
-Step 8: Transfer file from sender instance to receiver instance using receiver private IP
-
-scp -i reciever.pem file.txt ubuntu@172.31.19.236:/home/ubuntu/
-
-
-Step 9: Open another terminal on your Mac and connect to receiver instance
-
-ssh -i ~/Downloads/reciever.pem ubuntu@184.73.191.101
-
-
-Step 10: Check file on receiver instance
-
-ls
-cat file.txt
-
-
-Step 11: Check file permission on receiver instance
-
-ls -l file.txt
-
-
-Step 12: Change file permission so only owner can read and write
-
-chmod 600 file.txt
-ls -l file.txt
-
-
-Step 13: Create a secure folder on receiver instance
-
-mkdir received_files
-chmod 700 received_files
-ls -ld received_files
-
-
-Step 14: Go back to sender instance terminal
-
-cd ~/secure-sharing
-
-
-Step 15: Transfer file again into secure folder of receiver instance
-
-scp -i reciever.pem file.txt ubuntu@172.31.19.236:/home/ubuntu/received_files/
-
-
-Step 16: Go back to receiver instance terminal
-
-cd ~/received_files
-ls
-cat file.txt
-
-
-Step 17: Remove receiver key from sender instance for security
-
-Go back to sender instance terminal and run:
-
-cd ~/secure-sharing
-rm reciever.pem
-ls
-
-
-Step 18: Exit from sender and receiver terminals
-
-exit
-
-exit
-
-
-Security group setting if SCP does not work:
-
-Go to AWS Console
-
-EC2
-Security Groups
-Select the security group used by both instances
-Inbound rules
-Edit inbound rules
-Add rule
-
+Rule 1
 Type: SSH
-Protocol: TCP
-Port: 22
-Source: same security group ID
-
-Also keep this rule:
-
-Type: SSH
-Protocol: TCP
 Port: 22
 Source: My IP
 
+Rule 2
+Type: HTTP
+Port: 80
+Source: Anywhere IPv4
 
-Final command list only:
+Rule 3
+Type: HTTPS
+Port: 443
+Source: Anywhere IPv4
 
-cd ~/Downloads
-chmod 400 sender.pem
-chmod 400 reciever.pem
+--------------------------------------------------
+LAUNCH INSTANCE
+--------------------------------------------------
 
-ssh -i ~/Downloads/sender.pem ubuntu@18.207.93.0
+12. Click:
+    Launch Instance
 
-mkdir secure-sharing
-cd secure-sharing
-echo "This file is securely transferred from sender EC2 to receiver EC2." > file.txt
-cat file.txt
+13. Wait until:
+    Instance state = Running
+    Status checks = 3/3 checks passed
 
-scp -i ~/Downloads/sender.pem ~/Downloads/reciever.pem ubuntu@18.207.93.0:/home/ubuntu/
+--------------------------------------------------
+COPY PUBLIC IP
+--------------------------------------------------
 
-cd ~/secure-sharing
-mv /home/ubuntu/reciever.pem .
-chmod 400 reciever.pem
-ls -l
+14. Go to:
+    EC2 → Instances
 
-scp -i reciever.pem file.txt ubuntu@172.31.19.236:/home/ubuntu/
+15. Copy:
+    Public IPv4 address
 
-ssh -i ~/Downloads/reciever.pem ubuntu@184.73.191.101
+Example:
+13.60.162.216
 
-ls
-cat file.txt
-ls -l file.txt
-chmod 600 file.txt
-ls -l file.txt
+--------------------------------------------------
+WSL TERMINAL COMMANDS
+--------------------------------------------------
 
-mkdir received_files
-chmod 700 received_files
-ls -ld received_files
+16. Open Ubuntu / WSL terminal
 
-scp -i reciever.pem file.txt ubuntu@172.31.19.236:/home/ubuntu/received_files/
+17. Go to Windows Downloads folder:
 
-cd ~/received_files
-ls
-cat file.txt
+    cd /mnt/c/Users/jadha/Downloads
 
-cd ~/secure-sharing
-rm reciever.pem
-ls
+18. Copy PEM file to Linux home directory:
+
+    cp static-website-new.pem ~
+
+19. Go to Linux home directory:
+
+    cd ~
+
+20. Check PEM exists:
+
+    ls
+
+21. Give correct permissions:
+
+    chmod 400 static-website-new.pem
+
+22. Verify permissions:
+
+    ls -l static-website-new.pem
+
+Correct output:
+-r--------
+
+--------------------------------------------------
+CONNECT TO EC2
+--------------------------------------------------
+
+23. Connect using SSH:
+
+    ssh -i static-website-new.pem ubuntu@13.60.162.216
+
+24. If asked:
+
+    Are you sure you want to continue connecting?
+
+Type:
+yes
+
+--------------------------------------------------
+SUCCESSFUL LOGIN
+--------------------------------------------------
+
+25. You should now see:
+
+ubuntu@ip-172-31-xx-xx:~$
+
+--------------------------------------------------
+INSTALL NGINX
+--------------------------------------------------
+
+26. Update packages:
+
+    sudo apt update
+
+27. Install Nginx:
+
+    sudo apt install nginx -y
+
+28. Start Nginx:
+
+    sudo systemctl start nginx
+
+29. Enable Nginx:
+
+    sudo systemctl enable nginx
+
+30. Check status:
+
+    sudo systemctl status nginx
+
+--------------------------------------------------
+CHECK WEBSITE
+--------------------------------------------------
+
+31. Open browser:
+
+    http://13.60.162.216
+
+32. Default Nginx page should appear.
+
+--------------------------------------------------
+CREATE WEBSITE FILES
+--------------------------------------------------
+
+33. Open NEW WSL terminal
+
+34. Go to Linux home directory:
+
+    cd ~
+
+35. Create website folder:
+
+    mkdir static-website
+
+36. Open folder:
+
+    cd static-website
+
+37. Create files:
+
+    touch index.html style.css script.js
+
+--------------------------------------------------
+EDIT WEBSITE
+--------------------------------------------------
+
+38. Edit HTML:
+
+    nano index.html
+
+39. Edit CSS:
+
+    nano style.css
+
+40. Edit JS:
+
+    nano script.js
+
+--------------------------------------------------
+SAVE NANO FILES
+--------------------------------------------------
+
+41. Save:
+    Ctrl + O
+    Enter
+
+42. Exit:
+    Ctrl + X
+
+--------------------------------------------------
+UPLOAD WEBSITE FILES
+--------------------------------------------------
+
+43. Upload files to EC2:
+
+    scp -i ~/static-website-new.pem ~/static-website/index.html ~/static-website/style.css ~/static-website/script.js ubuntu@13.60.162.216:/home/ubuntu/
+
+--------------------------------------------------
+COPY FILES TO WEB SERVER
+--------------------------------------------------
+
+44. SSH into EC2 again:
+
+    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
+
+45. Remove default Nginx page:
+
+    sudo rm /var/www/html/index.nginx-debian.html
+
+46. Copy files:
+
+    sudo cp /home/ubuntu/index.html /var/www/html/
+
+    sudo cp /home/ubuntu/style.css /var/www/html/
+
+    sudo cp /home/ubuntu/script.js /var/www/html/
+
+47. Reload Nginx:
+
+    sudo systemctl reload nginx
+
+--------------------------------------------------
+FINAL OUTPUT
+--------------------------------------------------
+
+48. Open browser:
+
+    http://13.60.162.216
+
+49. Your website should appear successfully.
+
+--------------------------------------------------
+REMOTE WEBSITE UPDATE
+--------------------------------------------------
+
+50. To update website later:
+
+    cd ~/static-website
+
+51. Upload updated files:
+
+    scp -i ~/static-website-new.pem index.html style.css script.js ubuntu@13.60.162.216:/home/ubuntu/
+
+52. SSH into EC2:
+
+    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
+
+53. Copy updated files:
+
+    sudo cp /home/ubuntu/index.html /var/www/html/
+
+    sudo cp /home/ubuntu/style.css /var/www/html/
+
+    sudo cp /home/ubuntu/script.js /var/www/html/
+
+54. Reload Nginx:
+
+    sudo systemctl reload nginx
+
+55. Refresh browser to see updates.
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+- Use PUBLIC IPv4 only for SSH.
+- Use chmod 400 for PEM file.
+- Keep PEM inside Linux home directory.
+- Do not use PEM directly from /mnt/c.
+- Wait for 3/3 checks passed before SSH.
+```
