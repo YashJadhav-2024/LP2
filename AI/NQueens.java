@@ -236,3 +236,138 @@ return false;
 // Here:
 // 1 = Queen
 // 0 = Empty space
+
+//------------------------------------------------------------
+
+// Backtracking:
+// Technique where program tries one solution.
+// If it fails, it goes back and tries another possibility.
+
+// In N-Queens:
+// 1. Place queen
+// 2. Check if safe
+// 3. Move to next row
+// 4. If no solution possible:
+//    remove queen and try another position
+
+// Example:
+// board[row][col] = 1 -> Place queen
+// board[row][col] = 0 -> Remove queen (Backtrack)
+
+
+// Branch and Bound:
+// Optimization technique.
+// Branch -> Try different possible choices.
+// Bound -> Stop exploring invalid paths early.
+
+// In this program:
+// isSafe(board,row,col)
+// acts like bounding condition.
+// Unsafe positions are rejected immediately.
+
+// Example:
+// If queen already exists in same column or diagonal:
+// no need to continue checking that path.
+// Program skips that position immediately.
+
+// Example:
+// Q _ _ _
+// _ Q _ _
+
+// Trying to place another queen diagonally attacking existing queen
+// is rejected immediately.
+
+// N-Queens mainly uses:
+// Backtracking with pruning/bounding.
+//----------------------------------------------------------
+// Algorithm: N-Queens using Backtracking
+
+// 1. Start program
+
+// 2. Input number of queens N
+
+// 3. Create N x N chessboard initialized with 0
+
+// 4. Start placing queens row by row
+
+// 5. For each column in current row:
+//      a. Check if position is safe
+//      b. If safe:
+//            Place queen
+//            Recursively place queen in next row
+
+// 6. If all queens are placed:
+//      Print solution
+//      Stop
+
+// 7. If no safe position found:
+//      Remove previously placed queen
+//      Try next column (Backtracking)
+
+// 8. If all possibilities fail:
+//      Print "No Solution"
+
+// 9. End
+
+//-----------------------------------------------------------------
+// Algorithm: Branch and Bound
+
+// 1. Start program
+
+// 2. Divide problem into branches (possible choices)
+
+// 3. For each branch:
+//      a. Check if branch is valid/safe
+//      b. If branch is invalid:
+//            Reject it immediately (Bound)
+//      c. Else:
+//            Continue exploring that branch
+
+// 4. Store best possible solution found so far
+
+// 5. Continue until all valid branches are explored
+
+// 6. Print best solution
+
+// 7. End
+
+// Example in N-Queens:
+// If queen attacks another queen in same row,
+// column or diagonal:
+// reject that position immediately.
+
+//-----------------------------------------------------------------------
+
+// Difference Between Backtracking and Branch & Bound
+
+// Backtracking:
+// - Tries one solution at a time
+// - If solution fails, goes back and tries another
+// - Uses recursion
+// - Explores more possibilities
+// - Simpler approach
+
+// Example in N-Queens:
+// Place queen
+// If next rows fail:
+// remove queen and try another position
+
+
+// Branch and Bound:
+// - Optimization technique
+// - Rejects invalid paths early
+// - Uses pruning/bounding
+// - Reduces unnecessary searching
+// - Faster and more optimized
+
+// Example in N-Queens:
+// If queen attacks another queen:
+// skip that position immediately
+
+
+// In this program:
+// Main technique used:
+// Backtracking
+
+// isSafe() provides small pruning idea
+// similar to Branch and Bound.
