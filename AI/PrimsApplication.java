@@ -83,3 +83,151 @@ public class PrimsApplication {
         sc.close();
     }
 }
+
+//------------------------------------------------------------------------------
+
+// Algorithm: Prim's Minimum Spanning Tree Algorithm
+
+// 1. Start program
+
+// 2. Input number of labs(vertices)
+
+// 3. Input adjacency matrix
+
+// 4. Initialize:
+//      key[] = INF
+//      visited[] = false
+
+// 5. Set starting vertex key = 0
+
+// 6. Repeat vertices-1 times:
+//      a. Find unvisited vertex with minimum key
+//      b. Mark vertex as visited
+//      c. Update key values of adjacent vertices
+
+// 7. Store parent of each selected vertex
+
+// 8. Print selected cable connections
+
+// 9. Print minimum total cable cost
+
+// 10. End
+
+//==============================================================================
+
+// Example Inputs
+
+// Enter number of labs:
+// 5
+
+// Enter adjacency matrix:
+
+// 0 2 0 6 0
+// 2 0 3 8 5
+// 0 3 0 0 7
+// 6 8 0 0 9
+// 0 5 7 9 0
+
+
+// Output:
+
+// Cable connections selected:
+
+// 0 - 1 : 2
+// 1 - 2 : 3
+// 0 - 3 : 6
+// 1 - 4 : 5
+
+// Total minimum cable cost = 16
+
+//=================================================================================
+// Prim's Algorithm Application
+// Connects computer labs with minimum cable cost
+// using Minimum Spanning Tree (MST).
+
+
+// static final int INF = 99999
+// Represents infinity/large value.
+
+
+// int graph[][]
+// Adjacency matrix representation of graph.
+// graph[i][j] stores cable cost.
+
+
+// findMinVertex(key, visited, vertices)
+
+// Finds unvisited vertex with minimum key value.
+
+
+// key[]
+// Stores minimum edge cost needed
+// to connect each vertex.
+
+
+// visited[]
+// Tracks visited vertices.
+// true -> visited
+// false -> not visited.
+
+
+// parent[]
+// Stores parent vertex of MST.
+
+
+// key[0] = 0
+// Starts MST from vertex 0.
+
+
+// parent[0] = -1
+// Root vertex has no parent.
+
+
+// int u = findMinVertex(...)
+
+// Selects minimum cost vertex.
+
+
+// visited[u] = true
+// Marks selected vertex visited.
+
+
+// if(graph[u][v] != 0 && !visited[v]
+//    && graph[u][v] < key[v])
+
+// Updates smaller edge cost if found.
+
+
+// parent[v] = u
+// Stores MST connection.
+
+
+// key[v] = graph[u][v]
+// Updates minimum cost.
+
+
+// totalCost
+// Stores total minimum cable cost.
+
+
+// Prim's Algorithm:
+// Greedy MST algorithm.
+// Selects minimum edge step-by-step.
+
+
+// MST (Minimum Spanning Tree):
+// - Connects all vertices
+// - Minimum total cost
+// - No cycles
+
+
+// Used in:
+// - Network design
+// - Cable connections
+// - Railway networks
+// - Electrical wiring
+
+
+// main()
+// Driver function of program.
+// Execution starts from here.
