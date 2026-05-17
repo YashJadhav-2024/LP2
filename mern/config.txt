@@ -1,0 +1,862 @@
+CC - ONLINE EVENT REGISTRATION SYSTEM
+FULL STACK MERN APPLICATION DEPLOYMENT ON AWS EC2
+
+TECHNOLOGIES USED
+
+* Frontend: React + Vite
+* Backend: Node.js + Express.js
+* Database: MongoDB Atlas
+* Web Server: Nginx
+* Process Manager: PM2
+* Cloud Platform: AWS EC2 Ubuntu 24.04
+
+==================================================
+STEP 1 — CREATE AWS EC2 INSTANCE
+================================
+
+Open AWS Console.
+
+Go to EC2 → Launch Instance.
+
+Use:
+
+Instance Name:
+event-registration-system
+
+AMI:
+Ubuntu Server 24.04 LTS
+
+Instance Type:
+t2.micro or t3.micro
+
+Key Pair Name:
+event-registration-key
+
+Security Group Name:
+event-registration-sg
+
+Add inbound rules:
+
+| Type       | Port | Source    |
+| ---------- | ---- | --------- |
+| SSH        | 22   | My IP     |
+| HTTP       | 80   | 0.0.0.0/0 |
+| HTTPS      | 443  | 0.0.0.0/0 |
+| Custom TCP | 5000 | 0.0.0.0/0 |
+
+Launch instance.
+
+Copy Public IPv4 Address.
+
+==================================================
+STEP 2 — OPEN TERMINAL WINDOW 1
+===============================
+
+Open Ubuntu WSL terminal.
+
+Go Downloads folder:
+
+cd /mnt/c/Users/jadha/Downloads
+
+Copy PEM file to home:
+
+cp event-registration-key.pem ~/
+
+Go home:
+
+cd ~
+
+Give permission:
+
+chmod 400 event-registration-key.pem
+
+Verify:
+
+ls -l event-registration-key.pem
+
+Expected:
+
+-r--------
+
+==================================================
+STEP 3 — CONNECT TO AWS EC2
+===========================
+
+Run:
+
+ssh -i event-registration-key.pem ubuntu@YOUR_PUBLIC_IP
+
+Example:
+
+ssh -i event-registration-key.pem ubuntu@56.228.42.163
+
+If asked:
+
+Are you sure you want to continue connecting?
+
+Type:
+
+yes
+
+==================================================
+STEP 4 — UPDATE UBUNTU PACKAGES
+===============================
+
+sudo apt update
+
+sudo apt upgrade -y
+
+==================================================
+STEP 5 — INSTALL REQUIRED SOFTWARE
+==================================
+
+sudo apt install -y curl git nginx
+
+==================================================
+STEP 6 — INSTALL NODE.JS 20
+===========================
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+sudo apt install -y nodejs
+
+Check versions:
+
+node -v
+
+npm -v
+
+==================================================
+STEP 7 — CREATE PROJECT FOLDER
+==============================
+
+cd ~
+
+mkdir event-registration-mern
+
+cd event-registration-mern
+
+mkdir backend frontend
+
+==================================================
+STEP 8 — CREATE BACKEND PACKAGE.JSON
+====================================
+
+cd backend
+
+nano package.json
+
+Paste:
+
+{
+"name": "event-registration-backend",
+"version": "1.0.0",
+"description": "Backend for Online Event Registration System",
+"main": "server.js",
+"scripts": {
+"start": "node server.js"
+},
+"dependencies": {
+"cors": "^2.8.5",
+"dotenv": "^16.4.5",
+"express": "^4.18.3",
+"mongoose": "^8.2.1"
+}
+}
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+==================================================
+STEP 9 — CREATE SERVER.JS
+=========================
+
+nano server.js
+
+Paste:
+
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const PORT = process.env.PORT || 5000;
+
+mongoose
+.connect(process.env.MONGO_URI)
+.then(() => {
+console.log("MongoDB connected successfully");
+})
+.catch((error) => {
+console.log("MongoDB connection error:", error.message);
+});
+
+const registrationSchema = new mongoose.Schema({
+fullName: {
+type: String,
+required: true
+},
+email: {
+type: String,
+required: true
+},
+phone: {
+type: String,
+required: true
+},
+college: {
+type: String,
+required: true
+},
+eventName: {
+type: String,
+required: true
+},
+registeredAt: {
+type: Date,
+default: Date.now
+}
+});
+
+const Registration = mongoose.model("Registration", registrationSchema);
+
+app.get("/", (req, res) => {
+res.send("Online Event Registration Backend Running");
+});
+
+app.post("/api/register", async (req, res) => {
+try {
+const { fullName, email, phone, college, eventName } = req.body;
+
+```
+if (!fullName || !email || !phone || !college || !eventName) {
+  return res.status(400).json({
+    success: false,
+    message: "All fields are required"
+  });
+}
+
+const newRegistration = new Registration({
+  fullName,
+  email,
+  phone,
+  college,
+  eventName
+});
+
+await newRegistration.save();
+
+res.status(201).json({
+  success: true,
+  message: "Registration successful"
+});
+```
+
+} catch (error) {
+res.status(500).json({
+success: false,
+message: "Server error",
+error: error.message
+});
+}
+});
+
+app.get("/api/registrations", async (req, res) => {
+try {
+const registrations = await Registration.find().sort({ registeredAt: -1 });
+
+```
+res.status(200).json({
+  success: true,
+  data: registrations
+});
+```
+
+} catch (error) {
+res.status(500).json({
+success: false,
+message: "Unable to fetch registrations"
+});
+}
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+console.log("Server running on port " + PORT);
+});
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+==================================================
+STEP 10 — CREATE .ENV FILE
+==========================
+
+nano .env
+
+Paste:
+
+PORT=5000
+MONGO_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/eventdb?retryWrites=true&w=majority
+
+Replace username/password with your MongoDB Atlas credentials.
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+==================================================
+STEP 11 — CREATE MONGODB ATLAS DATABASE
+=======================================
+
+Open:
+
+https://www.mongodb.com/cloud/atlas
+
+Create free account.
+
+Create free cluster.
+
+Create database username/password.
+
+Go:
+
+Database → Connect → Drivers
+
+Copy connection string.
+
+Replace inside .env file.
+
+IMPORTANT:
+
+Network Access → Add IP Address
+
+Allow:
+
+0.0.0.0/0
+
+==================================================
+STEP 12 — INSTALL BACKEND DEPENDENCIES
+======================================
+
+npm install
+
+==================================================
+STEP 13 — TEST BACKEND
+======================
+
+node server.js
+
+Expected:
+
+MongoDB connected successfully
+Server running on port 5000
+
+Open:
+
+http://YOUR_PUBLIC_IP:5000
+
+Expected:
+
+Online Event Registration Backend Running
+
+Keep terminal open.
+
+==================================================
+STEP 14 — OPEN TERMINAL WINDOW 2
+================================
+
+Open second Ubuntu WSL terminal.
+
+Connect to EC2:
+
+ssh -i ~/event-registration-key.pem ubuntu@YOUR_PUBLIC_IP
+
+==================================================
+STEP 15 — CREATE FRONTEND PACKAGE.JSON
+======================================
+
+cd ~/event-registration-mern/frontend
+
+nano package.json
+
+Paste:
+
+{
+"name": "event-registration-frontend",
+"version": "1.0.0",
+"description": "Frontend for Online Event Registration System",
+"scripts": {
+"dev": "vite --host 0.0.0.0",
+"build": "vite build",
+"preview": "vite preview --host 0.0.0.0"
+},
+"dependencies": {
+"@vitejs/plugin-react": "latest",
+"vite": "latest",
+"react": "latest",
+"react-dom": "latest",
+"axios": "^1.6.7"
+}
+}
+
+Save.
+
+==================================================
+STEP 16 — CREATE INDEX.HTML
+===========================
+
+nano index.html
+
+Paste:
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Event Registration</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+
+Save.
+
+==================================================
+STEP 17 — CREATE SRC FOLDER
+===========================
+
+mkdir -p src
+
+==================================================
+STEP 18 — CREATE MAIN.JSX
+=========================
+
+nano src/main.jsx
+
+Paste:
+
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
+import axios from "axios";
+import "./style.css";
+
+function App() {
+const [formData, setFormData] = useState({
+fullName: "",
+email: "",
+phone: "",
+college: "",
+eventName: "Tech Fest"
+});
+
+const [message, setMessage] = useState("");
+const [registrations, setRegistrations] = useState([]);
+
+const fetchRegistrations = async () => {
+try {
+const response = await axios.get("/api/registrations");
+setRegistrations(response.data.data);
+} catch (error) {
+console.log("Unable to fetch registrations");
+}
+};
+
+useEffect(() => {
+fetchRegistrations();
+}, []);
+
+const handleChange = (e) => {
+setFormData({
+...formData,
+[e.target.name]: e.target.value
+});
+};
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+
+```
+try {
+  const response = await axios.post("/api/register", formData);
+
+  setMessage(response.data.message);
+
+  setFormData({
+    fullName: "",
+    email: "",
+    phone: "",
+    college: "",
+    eventName: "Tech Fest"
+  });
+
+  fetchRegistrations();
+} catch (error) {
+  setMessage(error.response?.data?.message || "Registration failed");
+}
+```
+
+};
+
+return ( <div className="page"> <div className="hero"> <h1>Online Event Registration System</h1> <p>Register for college events quickly and securely.</p> </div>
+
+```
+  <div className="container">
+    <div className="card">
+      <h2>Event Registration Form</h2>
+
+      {message && <div className="message">{message}</div>}
+
+      <form onSubmit={handleSubmit}>
+
+        <label>Full Name</label>
+        <input
+          type="text"
+          name="fullName"
+          value={formData.fullName}
+          onChange={handleChange}
+          required
+        />
+
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+
+        <label>Phone</label>
+        <input
+          type="text"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+
+        <label>College</label>
+        <input
+          type="text"
+          name="college"
+          value={formData.college}
+          onChange={handleChange}
+          required
+        />
+
+        <label>Event</label>
+
+        <select
+          name="eventName"
+          value={formData.eventName}
+          onChange={handleChange}
+        >
+          <option value="Tech Fest">Tech Fest</option>
+          <option value="Coding Competition">Coding Competition</option>
+          <option value="AI Workshop">AI Workshop</option>
+          <option value="Cloud Computing Seminar">Cloud Computing Seminar</option>
+          <option value="Project Exhibition">Project Exhibition</option>
+        </select>
+
+        <button type="submit">
+          Register Now
+        </button>
+
+      </form>
+    </div>
+
+    <div className="card">
+      <h2>Registered Participants</h2>
+
+      {registrations.length === 0 ? (
+        <p>No registrations yet.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Event</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {registrations.map((item) => (
+              <tr key={item._id}>
+                <td>{item.fullName}</td>
+                <td>{item.email}</td>
+                <td>{item.eventName}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+Save.
+
+==================================================
+STEP 19 — CREATE STYLE.CSS
+==========================
+
+nano src/style.css
+
+Paste:
+
+body {
+margin: 0;
+font-family: Arial, sans-serif;
+background: #f2f6ff;
+}
+
+.hero {
+background: #1e3c72;
+color: white;
+text-align: center;
+padding: 40px;
+}
+
+.container {
+width: 90%;
+margin: auto;
+margin-top: 30px;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+}
+
+.card {
+background: white;
+padding: 20px;
+border-radius: 12px;
+}
+
+form {
+display: flex;
+flex-direction: column;
+}
+
+input,
+select {
+margin-top: 10px;
+padding: 10px;
+}
+
+button {
+margin-top: 15px;
+padding: 12px;
+background: #1e3c72;
+color: white;
+border: none;
+cursor: pointer;
+}
+
+.message {
+background: lightgreen;
+padding: 10px;
+margin-bottom: 10px;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+}
+
+th,
+td {
+padding: 10px;
+border: 1px solid #ccc;
+}
+
+th {
+background: #1e3c72;
+color: white;
+}
+
+Save.
+
+==================================================
+STEP 20 — INSTALL FRONTEND DEPENDENCIES
+=======================================
+
+npm install
+
+==================================================
+STEP 21 — BUILD FRONTEND
+========================
+
+npm run build
+
+==================================================
+STEP 22 — INSTALL PM2
+=====================
+
+sudo npm install -g pm2
+
+==================================================
+STEP 23 — START BACKEND USING PM2
+=================================
+
+cd ~/event-registration-mern/backend
+
+pm2 start server.js --name event-backend
+
+pm2 save
+
+pm2 startup
+
+Copy and run command shown by PM2 starting with:
+
+sudo env PATH=...
+
+Check:
+
+pm2 status
+
+Expected:
+
+event-backend online
+
+==================================================
+STEP 24 — DEPLOY FRONTEND USING NGINX
+=====================================
+
+sudo rm -rf /var/www/html
+
+sudo mkdir -p /var/www/html
+
+sudo cp -r ~/event-registration-mern/frontend/dist/* /var/www/html/
+
+==================================================
+STEP 25 — CONFIGURE NGINX
+=========================
+
+sudo nano /etc/nginx/sites-available/default
+
+Delete everything and paste:
+
+server {
+listen 80;
+server_name _;
+
+```
+root /var/www/html;
+index index.html;
+
+location / {
+    try_files $uri /index.html;
+}
+
+location /api/ {
+    proxy_pass http://localhost:5000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+
+}
+
+Save.
+
+==================================================
+STEP 26 — RESTART NGINX
+=======================
+
+sudo nginx -t
+
+sudo systemctl restart nginx
+
+sudo systemctl enable nginx
+
+Check status:
+
+sudo systemctl status nginx
+
+If active press:
+
+q
+
+==================================================
+STEP 27 — FINAL WEBSITE
+=======================
+
+Frontend:
+
+http://YOUR_PUBLIC_IP
+
+Backend API:
+
+http://YOUR_PUBLIC_IP/api/registrations
+
+==================================================
+STEP 28 — TEST APPLICATION
+==========================
+
+Fill registration form.
+
+Click:
+
+Register Now
+
+Expected:
+
+* Registration successful
+* Data stored in MongoDB Atlas
+* Participant shown in table
+
+==================================================
+USEFUL COMMANDS
+===============
+
+Restart backend:
+
+pm2 restart event-backend
+
+View backend logs:
+
+pm2 logs event-backend
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+Rebuild frontend after changes:
+
+cd ~/event-registration-mern/frontend
+
+npm run build
+
+sudo rm -rf /var/www/html/*
+
+sudo cp -r dist/* /var/www/html/
+
+sudo systemctl restart nginx
