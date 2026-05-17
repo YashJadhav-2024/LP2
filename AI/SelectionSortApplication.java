@@ -40,3 +40,67 @@ public class SelectionSortApplication {
         sc.close();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Algorithm: Selection Sort
+
+// 1. Start program
+
+// 2. Input number of elements
+
+// 3. Store elements in array
+
+// 4. For each position i:
+//      a. Assume current index is minimum
+//      b. Compare with remaining elements
+//      c. Find smallest element
+
+// 5. Swap smallest element
+//    with current position
+
+// 6. Repeat until array is sorted
+
+// 7. Print sorted array
+
+// 8. End
+
+
+// Example:
+// Array:
+// 450 120 999 300 750
+
+// Pass 1:
+// Smallest = 120
+// Swap with 450
+
+// Array:
+// 120 450 999 300 750
+
+// Pass 2:
+// Smallest = 300
+// Swap with 450
+
+// Array:
+// 120 300 999 450 750
+
+// Continue until fully sorted.
