@@ -150,3 +150,84 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# main()
+# Main function of the program. Contains complete employee evaluation logic.
+
+# print()
+# Used to display output on the screen.
+
+# input()
+# Used to take input from the user.
+
+# strip()
+# Removes extra spaces from beginning and end of input.
+
+# int()
+# Converts string input into integer.
+
+# lower()
+# Converts text into lowercase.
+
+# if / elif / else
+# Used for decision making based on conditions.
+
+# Boolean Variables (True / False)
+# Used as flags to track conditions like high_performer or critical_issue.
+
+# Comparison Operators
+# >=  Greater than or equal to
+# <=  Less than or equal to
+# ==  Equal to
+# !=  Not equal to
+# >   Greater than
+# <   Less than
+
+# Logical Operators
+# and -> Both conditions must be true
+# or  -> At least one condition must be true
+# not -> Reverses the condition
+
+# Example:
+# if score >= 15 and not critical_issue:
+# Means:
+# score must be 15 or more
+# AND
+# critical_issue must be False
+
+# += operator
+# Adds value and stores result back into variable.
+# Example:
+# score += 2
+# same as:
+# score = score + 2
+
+# __name__ == "__main__"
+# Checks whether the file is executed directly.
+# If true, main() function runs.
+
+# Example:
+# if __name__ == "__main__":
+#     main()
