@@ -1,0 +1,358 @@
+==========================
+SECURE FILE SHARING BETWEEN TWO AWS EC2 INSTANCES
+==========================
+
+AIM:
+Create two AWS EC2 Ubuntu instances and securely transfer files between them using SCP and SSH with proper permissions.
+
+--------------------------------------------------
+STEP 1 — CREATE SENDER EC2 INSTANCE
+--------------------------------------------------
+
+1. Open AWS Console
+   AWS Console → EC2 → Launch Instance
+
+2. Instance Details
+   Name:
+   sender-instance
+
+3. AMI (Operating System)
+   Ubuntu Server 24.04 LTS
+
+4. Instance Type
+   t2.micro
+
+5. Key Pair
+   Create new key pair
+
+   Key pair name:
+   sender
+
+   Type:
+   RSA
+
+   Format:
+   .pem
+
+   Download:
+   sender.pem
+
+6. Network Settings
+
+   Click Edit
+
+   Auto Assign Public IP:
+   Enable
+
+   Create Security Group:
+   sender-sg
+
+   Add Inbound Rule:
+
+   Type: SSH
+   Port: 22
+   Source: My IP
+
+7. Launch Instance
+
+--------------------------------------------------
+STEP 2 — CREATE RECEIVER EC2 INSTANCE
+--------------------------------------------------
+
+1. AWS Console → EC2 → Launch Instance
+
+2. Instance Name:
+   receiver-instance
+
+3. AMI:
+   Ubuntu Server 24.04 LTS
+
+4. Instance Type:
+   t2.micro
+
+5. Key Pair:
+   Create new key pair
+
+   Name:
+   receiver
+
+   Type:
+   RSA
+
+   Format:
+   .pem
+
+   Download:
+   receiver.pem
+
+6. Network Settings
+
+   Auto Assign Public IP:
+   Enable
+
+   Create Security Group:
+   receiver-sg
+
+   Add Rule:
+
+   Type: SSH
+   Port: 22
+   Source: My IP
+
+7. Launch Instance
+
+--------------------------------------------------
+STEP 3 — CONFIGURE SECURITY GROUPS
+--------------------------------------------------
+
+Go to:
+EC2 → Security Groups
+
+--------------------------------
+A. sender-sg
+--------------------------------
+
+Edit Inbound Rules
+
+Add Rule:
+
+Type: SSH
+Port: 22
+Source:
+receiver-sg
+
+Save Rules
+
+--------------------------------
+B. receiver-sg
+--------------------------------
+
+Edit Inbound Rules
+
+Add Rule:
+
+Type: SSH
+Port: 22
+Source:
+sender-sg
+
+Save Rules
+
+--------------------------------------------------
+STEP 4 — COPY IMPORTANT IP ADDRESSES
+--------------------------------------------------
+
+Go to:
+EC2 → Instances
+
+Copy:
+
+Sender Public IP:
+51.20.84.83
+
+Receiver Public IP:
+13.48.57.140
+
+Receiver Private IP:
+172.31.34.57
+
+--------------------------------------------------
+STEP 5 — OPEN WSL / UBUNTU TERMINAL
+--------------------------------------------------
+
+WINDOW 1 — YOUR LAPTOP WSL TERMINAL
+
+# Go to Windows Downloads folder
+cd /mnt/c/Users/jadha/Downloads
+
+# Copy PEM keys into Linux home directory
+cp sender.pem ~
+cp receiver.pem ~
+
+# Go to Linux home directory
+cd ~
+
+# Give secure read-only permission to sender key
+chmod 400 sender.pem
+
+# Give secure read-only permission to receiver key
+chmod 400 receiver.pem
+
+# Connect to sender EC2 instance using SSH
+ssh -i sender.pem ubuntu@51.20.84.83
+
+--------------------------------------------------
+STEP 6 — CREATE FILE ON SENDER EC2
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Create folder for secure sharing
+mkdir secure-sharing
+
+# Open secure-sharing folder
+cd secure-sharing
+
+# Create file with sample message
+echo "This file is securely transferred from sender EC2 to receiver EC2." > file.txt
+
+# Display file content
+cat file.txt
+
+--------------------------------------------------
+STEP 7 — COPY RECEIVER KEY TO SENDER EC2
+--------------------------------------------------
+
+WINDOW 1 — YOUR LAPTOP WSL TERMINAL
+
+# Copy receiver.pem from laptop to sender EC2
+scp -i sender.pem receiver.pem ubuntu@51.20.84.83:/home/ubuntu/
+
+--------------------------------------------------
+STEP 8 — PREPARE RECEIVER KEY INSIDE SENDER EC2
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Go to secure-sharing folder
+cd ~/secure-sharing
+
+# Move receiver.pem into current folder
+mv /home/ubuntu/receiver.pem .
+
+# Give secure permission to receiver.pem
+chmod 400 receiver.pem
+
+# Check files and permissions
+ls -l
+
+--------------------------------------------------
+STEP 9 — TRANSFER FILE FROM SENDER TO RECEIVER
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Securely transfer file.txt using SCP and receiver private IP
+scp -i receiver.pem file.txt ubuntu@172.31.34.57:/home/ubuntu/
+
+--------------------------------------------------
+STEP 10 — CONNECT TO RECEIVER EC2
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Connect to receiver EC2 instance
+ssh -i receiver.pem ubuntu@13.48.57.140
+
+--------------------------------------------------
+STEP 11 — VERIFY FILE ON RECEIVER
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# List files
+ls
+
+# Display transferred file content
+cat file.txt
+
+--------------------------------------------------
+STEP 12 — SECURE FILE PERMISSIONS
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Show current file permissions
+ls -l file.txt
+
+# Allow only owner to read/write file
+chmod 600 file.txt
+
+# Verify updated permissions
+ls -l file.txt
+
+--------------------------------------------------
+STEP 13 — CREATE SECURE DIRECTORY
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Create secure folder
+mkdir received_files
+
+# Allow only owner access to folder
+chmod 700 received_files
+
+# Verify directory permissions
+ls -ld received_files
+
+--------------------------------------------------
+STEP 14 — TRANSFER FILE INTO SECURE FOLDER
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Transfer file again into secure folder
+scp -i receiver.pem file.txt ubuntu@172.31.34.57:/home/ubuntu/received_files/
+
+--------------------------------------------------
+STEP 15 — VERIFY FINAL FILE
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Open secure folder
+cd received_files
+
+# List files
+ls
+
+# Display file content
+cat file.txt
+
+--------------------------------------------------
+STEP 16 — SECURITY CLEANUP
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Remove receiver key from sender machine
+rm receiver.pem
+
+# Verify removal
+ls
+
+--------------------------------------------------
+OUTPUT
+--------------------------------------------------
+
+1. Two EC2 Ubuntu instances created successfully.
+2. Secure SSH communication established.
+3. File transferred securely using SCP.
+4. File and folder permissions configured properly.
+5. Secure cloud-based file sharing completed successfully.
+
+--------------------------------------------------
+IMPORTANT COMMAND EXPLANATIONS
+--------------------------------------------------
+
+chmod 400 file.pem
+= Owner can only read PEM key
+
+chmod 600 file.txt
+= Owner can read/write file only
+
+chmod 700 folder
+= Owner has full access to folder only
+
+SSH
+= Secure Shell for remote login
+
+SCP
+= Secure Copy Protocol for secure file transfer
+
+Public IP
+= Used for internet access from laptop
+
+Private IP
+= Used for internal communication between EC2 instances
