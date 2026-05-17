@@ -1,0 +1,504 @@
+AWS DEPLOYMENT STEPS
+Cloud-Based Student Record Management System
+
+Project folder on laptop:
+
+/mnt/c/Users/jadha/Downloads/LP2-main/LP2-main/student-record-system
+
+Folder structure:
+
+student-record-system
+├── backend
+│   ├── package.json
+│   └── server.js
+└── frontend
+└── index.html
+
+---
+
+## STEP 1: CREATE AWS EC2 INSTANCE
+
+Open AWS Console and go to EC2.
+
+Click Launch Instance.
+
+Enter instance name:
+
+student-record-system
+
+Select AMI:
+
+Ubuntu Server 24.04 LTS
+
+Select instance type:
+
+t2.micro or t3.micro
+
+Create key pair:
+
+student-record-key
+
+Security Group Name:
+
+student-record-sg
+
+Add these inbound rules:
+
+SSH
+Port: 22
+Source: My IP
+
+HTTP
+Port: 80
+Source: 0.0.0.0/0
+
+Custom TCP
+Port: 5000
+Source: 0.0.0.0/0
+
+Launch the instance.
+
+Public IPv4 Address:
+
+56.228.42.163
+
+---
+
+## STEP 2: OPEN TERMINAL WINDOW 1
+
+Open Ubuntu WSL terminal.
+
+Go to Downloads:
+
+cd /mnt/c/Users/jadha/Downloads
+
+Copy PEM file to home:
+
+cp student-record-key.pem ~/
+
+Go home:
+
+cd ~
+
+Give permission:
+
+chmod 400 student-record-key.pem
+
+Verify:
+
+ls -l student-record-key.pem
+
+Expected:
+
+-r--------
+
+---
+
+## STEP 3: CONNECT TO AWS EC2 (TERMINAL WINDOW 1)
+
+Run:
+
+ssh -i student-record-key.pem ubuntu@56.228.42.163
+
+If asked:
+
+Are you sure you want to continue connecting?
+
+Type:
+
+yes
+
+Connected terminal should look like:
+
+ubuntu@ip-172-31-xx-xx:~$
+
+---
+
+## STEP 4: INSTALL REQUIRED SOFTWARE (TERMINAL WINDOW 1)
+
+Update Ubuntu:
+
+sudo apt update
+
+Install Node.js, npm, Nginx and Git:
+
+sudo apt install nodejs npm nginx git -y
+
+Check versions:
+
+node -v
+
+npm -v
+
+nginx -v
+
+git --version
+
+---
+
+## STEP 5: OPEN TERMINAL WINDOW 2
+
+Open SECOND Ubuntu WSL terminal.
+
+Go to project folder location:
+
+cd /mnt/c/Users/jadha/Downloads/LP2-main/LP2-main
+
+Check files:
+
+ls
+
+You should see:
+
+student-record-system
+
+---
+
+## STEP 6: UPLOAD PROJECT TO AWS USING SCP (TERMINAL WINDOW 2)
+
+Run:
+
+scp -i ~/student-record-key.pem -r student-record-system ubuntu@56.228.42.163:/home/ubuntu/
+
+Wait until upload finishes.
+
+---
+
+## STEP 7: CHECK PROJECT ON AWS (TERMINAL WINDOW 1)
+
+Run:
+
+cd ~
+
+ls
+
+You should see:
+
+student-record-system
+
+Go project folder:
+
+cd student-record-system
+
+Check files:
+
+ls
+
+You should see:
+
+backend frontend
+
+Check backend folder:
+
+ls backend
+
+You should see:
+
+package.json server.js
+
+Check frontend folder:
+
+ls frontend
+
+You should see:
+
+index.html
+
+---
+
+## STEP 8: INSTALL BACKEND DEPENDENCIES (TERMINAL WINDOW 1)
+
+Go backend:
+
+cd ~/student-record-system/backend
+
+Install dependencies:
+
+npm install
+
+---
+
+## STEP 9: START BACKEND TEMPORARILY (TERMINAL WINDOW 1)
+
+Run:
+
+node server.js
+
+Expected:
+
+Server running on port 5000
+
+Keep TERMINAL WINDOW 1 OPEN.
+
+---
+
+## STEP 10: CONNECT AWS AGAIN (TERMINAL WINDOW 2)
+
+Connect to AWS again:
+
+ssh -i ~/student-record-key.pem ubuntu@56.228.42.163
+
+---
+
+## STEP 11: COPY FRONTEND TO NGINX WEB ROOT (TERMINAL WINDOW 2)
+
+Remove default Nginx page:
+
+sudo rm -rf /var/www/html/*
+
+Copy frontend:
+
+sudo cp ~/student-record-system/frontend/index.html /var/www/html/
+
+Check:
+
+ls /var/www/html
+
+You should see:
+
+index.html
+
+---
+
+## STEP 12: CONFIGURE NGINX REVERSE PROXY (TERMINAL WINDOW 2)
+
+Open config:
+
+sudo nano /etc/nginx/sites-available/default
+
+Delete old content completely.
+
+Paste this:
+
+server {
+listen 80 default_server;
+listen [::]:80 default_server;
+
+```
+root /var/www/html;
+index index.html;
+
+server_name _;
+
+location / {
+    try_files $uri $uri/ =404;
+}
+
+location /api/ {
+    proxy_pass http://127.0.0.1:5000/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+
+}
+
+Save file:
+
+CTRL + O
+Enter
+CTRL + X
+
+---
+
+## STEP 13: RESTART NGINX (TERMINAL WINDOW 2)
+
+Check Nginx config:
+
+sudo nginx -t
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+Check status:
+
+sudo systemctl status nginx
+
+If it shows:
+
+active (running)
+
+Press:
+
+q
+
+---
+
+## STEP 14: OPEN WEBSITE IN BROWSER
+
+Open browser:
+
+http://56.228.42.163
+
+The Student Record Management System page should open.
+
+Try adding sample student:
+
+Name: Dhruv Dhone
+Roll No: 31413
+Department: Computer Engineering
+Email: [dhruv@gmail.com](mailto:dhruv@gmail.com)
+Phone: 9876543210
+
+Click Save Student.
+
+Student record should appear in table.
+
+---
+
+## STEP 15: TEST BACKEND API DIRECTLY (TERMINAL WINDOW 1)
+
+Open another EC2 terminal OR stop backend temporarily.
+
+Test API:
+
+curl http://localhost:5000/students
+
+Add sample student:
+
+curl -X POST http://localhost:5000/students 
+-H "Content-Type: application/json" 
+-d '{"name":"Dhruv Dhone","roll_no":"31413","department":"Computer Engineering","email":"[dhruv@gmail.com](mailto:dhruv@gmail.com)","phone":"9876543210"}'
+
+Check records:
+
+curl http://localhost:5000/students
+
+---
+
+## STEP 16: KEEP BACKEND RUNNING PERMANENTLY USING PM2 (TERMINAL WINDOW 1)
+
+Stop backend:
+
+CTRL + C
+
+Install PM2:
+
+sudo npm install -g pm2
+
+Go backend:
+
+cd ~/student-record-system/backend
+
+Start backend using PM2:
+
+pm2 start server.js --name student-backend
+
+Save PM2 process:
+
+pm2 save
+
+Enable startup:
+
+pm2 startup
+
+After running pm2 startup, it will show one command starting with:
+
+sudo env PATH=...
+
+Copy that full command and run it once.
+
+Check PM2:
+
+pm2 status
+
+Expected:
+
+student-backend online
+
+---
+
+## STEP 17: FINAL CHECK (TERMINAL WINDOW 2)
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+Check backend:
+
+pm2 status
+
+Open website:
+
+http://56.228.42.163
+
+Frontend runs on port 80 using Nginx.
+
+Backend runs on port 5000 using Node.js.
+
+Database is stored as students.db inside backend folder.
+
+---
+
+## COMMON FIXES
+
+If website is not opening:
+
+Check AWS Security Group.
+
+HTTP port 80 must be open for:
+
+0.0.0.0/0
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+If backend is not connected:
+
+Check:
+
+pm2 status
+
+If backend stopped:
+
+cd ~/student-record-system/backend
+
+pm2 start server.js --name student-backend
+
+If old Nginx page shows:
+
+sudo rm -rf /var/www/html/*
+
+sudo cp ~/student-record-system/frontend/index.html /var/www/html/
+
+sudo systemctl restart nginx
+
+If SSH fails:
+
+Check:
+
+* instance running
+* correct public IP
+* correct PEM file
+* permission set correctly
+
+Run:
+
+chmod 400 student-record-key.pem
+
+If backend port 5000 not working:
+
+Test locally on AWS:
+
+curl http://localhost:5000/students
+
+If working locally:
+
+Check Nginx reverse proxy.
+
+Run:
+
+sudo nginx -t
+
+sudo systemctl restart nginx
+
+---
+
+## FINAL WEBSITE URL
+
+http://56.228.42.163
