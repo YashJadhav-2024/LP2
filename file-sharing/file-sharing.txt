@@ -1,32 +1,32 @@
+==========================
+SECURE FILE SHARING BETWEEN TWO AWS EC2 INSTANCES
+==========================
 
-==============================
-CREATE STATIC WEBSITE EC2 INSTANCE
-==============================
+AIM:
+Create two AWS EC2 Ubuntu instances and securely transfer files between them using SCP and SSH with proper permissions.
 
-1. Go to:
+--------------------------------------------------
+STEP 1 — CREATE SENDER EC2 INSTANCE
+--------------------------------------------------
+
+1. Open AWS Console
    AWS Console → EC2 → Launch Instance
 
---------------------------------------------------
-INSTANCE SETTINGS
---------------------------------------------------
+2. Instance Details
+   Name:
+   sender-instance
 
-2. Name:
-   static-website-server
-
-3. AMI:
+3. AMI (Operating System)
    Ubuntu Server 24.04 LTS
 
-4. Instance Type:
-   t3.micro
+4. Instance Type
+   t2.micro
 
---------------------------------------------------
-KEY PAIR
---------------------------------------------------
-
-5. Create new key pair
+5. Key Pair
+   Create new key pair
 
    Key pair name:
-   static-website-new
+   sender
 
    Type:
    RSA
@@ -34,288 +34,325 @@ KEY PAIR
    Format:
    .pem
 
-6. Click:
-   Create key pair
+   Download:
+   sender.pem
 
-7. PEM file downloads automatically:
-   static-website-new.pem
+6. Network Settings
 
---------------------------------------------------
-NETWORK SETTINGS
---------------------------------------------------
+   Click Edit
 
-8. Click:
-   Edit
-
-9. Auto-assign Public IP:
+   Auto Assign Public IP:
    Enable
 
-10. Create security group:
-    static-website-sg
+   Create Security Group:
+   sender-sg
+
+   Add Inbound Rule:
+
+   Type: SSH
+   Port: 22
+   Source: My IP
+
+7. Launch Instance
 
 --------------------------------------------------
-INBOUND RULES
+STEP 2 — CREATE RECEIVER EC2 INSTANCE
 --------------------------------------------------
 
-11. Add these rules:
+1. AWS Console → EC2 → Launch Instance
 
-Rule 1
+2. Instance Name:
+   receiver-instance
+
+3. AMI:
+   Ubuntu Server 24.04 LTS
+
+4. Instance Type:
+   t2.micro
+
+5. Key Pair:
+   Create new key pair
+
+   Name:
+   receiver
+
+   Type:
+   RSA
+
+   Format:
+   .pem
+
+   Download:
+   receiver.pem
+
+6. Network Settings
+
+   Auto Assign Public IP:
+   Enable
+
+   Create Security Group:
+   receiver-sg
+
+   Add Rule:
+
+   Type: SSH
+   Port: 22
+   Source: My IP
+
+7. Launch Instance
+
+--------------------------------------------------
+STEP 3 — CONFIGURE SECURITY GROUPS
+--------------------------------------------------
+
+Go to:
+EC2 → Security Groups
+
+--------------------------------
+A. sender-sg
+--------------------------------
+
+Edit Inbound Rules
+
+Add Rule:
+
 Type: SSH
 Port: 22
-Source: My IP
+Source:
+receiver-sg
 
-Rule 2
-Type: HTTP
-Port: 80
-Source: Anywhere IPv4
+Save Rules
 
-Rule 3
-Type: HTTPS
-Port: 443
-Source: Anywhere IPv4
+--------------------------------
+B. receiver-sg
+--------------------------------
 
---------------------------------------------------
-LAUNCH INSTANCE
---------------------------------------------------
+Edit Inbound Rules
 
-12. Click:
-    Launch Instance
+Add Rule:
 
-13. Wait until:
-    Instance state = Running
-    Status checks = 3/3 checks passed
+Type: SSH
+Port: 22
+Source:
+sender-sg
+
+Save Rules
 
 --------------------------------------------------
-COPY PUBLIC IP
+STEP 4 — COPY IMPORTANT IP ADDRESSES
 --------------------------------------------------
 
-14. Go to:
-    EC2 → Instances
+Go to:
+EC2 → Instances
 
-15. Copy:
-    Public IPv4 address
+Copy:
 
-Example:
-13.60.162.216
+Sender Public IP:
+51.20.84.83
 
---------------------------------------------------
-WSL TERMINAL COMMANDS
---------------------------------------------------
+Receiver Public IP:
+13.48.57.140
 
-16. Open Ubuntu / WSL terminal
-
-17. Go to Windows Downloads folder:
-
-    cd /mnt/c/Users/jadha/Downloads
-
-18. Copy PEM file to Linux home directory:
-
-    cp static-website-new.pem ~
-
-19. Go to Linux home directory:
-
-    cd ~
-
-20. Check PEM exists:
-
-    ls
-
-21. Give correct permissions:
-
-    chmod 400 static-website-new.pem
-
-22. Verify permissions:
-
-    ls -l static-website-new.pem
-
-Correct output:
--r--------
+Receiver Private IP:
+172.31.34.57
 
 --------------------------------------------------
-CONNECT TO EC2
+STEP 5 — OPEN WSL / UBUNTU TERMINAL
 --------------------------------------------------
 
-23. Connect using SSH:
+WINDOW 1 — YOUR LAPTOP WSL TERMINAL
 
-    ssh -i static-website-new.pem ubuntu@13.60.162.216
+# Go to Windows Downloads folder
+cd /mnt/c/Users/jadha/Downloads
 
-24. If asked:
+# Copy PEM keys into Linux home directory
+cp sender.pem ~
+cp receiver.pem ~
 
-    Are you sure you want to continue connecting?
+# Go to Linux home directory
+cd ~
 
-Type:
-yes
+# Give secure read-only permission to sender key
+chmod 400 sender.pem
 
---------------------------------------------------
-SUCCESSFUL LOGIN
---------------------------------------------------
+# Give secure read-only permission to receiver key
+chmod 400 receiver.pem
 
-25. You should now see:
-
-ubuntu@ip-172-31-xx-xx:~$
-
---------------------------------------------------
-INSTALL NGINX
---------------------------------------------------
-
-26. Update packages:
-
-    sudo apt update
-
-27. Install Nginx:
-
-    sudo apt install nginx -y
-
-28. Start Nginx:
-
-    sudo systemctl start nginx
-
-29. Enable Nginx:
-
-    sudo systemctl enable nginx
-
-30. Check status:
-
-    sudo systemctl status nginx
+# Connect to sender EC2 instance using SSH
+ssh -i sender.pem ubuntu@51.20.84.83
 
 --------------------------------------------------
-CHECK WEBSITE
+STEP 6 — CREATE FILE ON SENDER EC2
 --------------------------------------------------
 
-31. Open browser:
+WINDOW 2 — SENDER EC2 TERMINAL
 
-    http://13.60.162.216
+# Create folder for secure sharing
+mkdir secure-sharing
 
-32. Default Nginx page should appear.
+# Open secure-sharing folder
+cd secure-sharing
 
---------------------------------------------------
-CREATE WEBSITE FILES
---------------------------------------------------
+# Create file with sample message
+echo "This file is securely transferred from sender EC2 to receiver EC2." > file.txt
 
-33. Open NEW WSL terminal
-
-34. Go to Linux home directory:
-
-    cd ~
-
-35. Create website folder:
-
-    mkdir static-website
-
-36. Open folder:
-
-    cd static-website
-
-37. Create files:
-
-    touch index.html style.css script.js
+# Display file content
+cat file.txt
 
 --------------------------------------------------
-EDIT WEBSITE
+STEP 7 — COPY RECEIVER KEY TO SENDER EC2
 --------------------------------------------------
 
-38. Edit HTML:
+WINDOW 1 — YOUR LAPTOP WSL TERMINAL
 
-    nano index.html
-
-39. Edit CSS:
-
-    nano style.css
-
-40. Edit JS:
-
-    nano script.js
+# Copy receiver.pem from laptop to sender EC2
+scp -i sender.pem receiver.pem ubuntu@51.20.84.83:/home/ubuntu/
 
 --------------------------------------------------
-SAVE NANO FILES
+STEP 8 — PREPARE RECEIVER KEY INSIDE SENDER EC2
 --------------------------------------------------
 
-41. Save:
-    Ctrl + O
-    Enter
+WINDOW 2 — SENDER EC2 TERMINAL
 
-42. Exit:
-    Ctrl + X
+# Go to secure-sharing folder
+cd ~/secure-sharing
 
---------------------------------------------------
-UPLOAD WEBSITE FILES
---------------------------------------------------
+# Move receiver.pem into current folder
+mv /home/ubuntu/receiver.pem .
 
-43. Upload files to EC2:
+# Give secure permission to receiver.pem
+chmod 400 receiver.pem
 
-    scp -i ~/static-website-new.pem ~/static-website/index.html ~/static-website/style.css ~/static-website/script.js ubuntu@13.60.162.216:/home/ubuntu/
-
---------------------------------------------------
-COPY FILES TO WEB SERVER
---------------------------------------------------
-
-44. SSH into EC2 again:
-
-    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
-
-45. Remove default Nginx page:
-
-    sudo rm /var/www/html/index.nginx-debian.html
-
-46. Copy files:
-
-    sudo cp /home/ubuntu/index.html /var/www/html/
-
-    sudo cp /home/ubuntu/style.css /var/www/html/
-
-    sudo cp /home/ubuntu/script.js /var/www/html/
-
-47. Reload Nginx:
-
-    sudo systemctl reload nginx
+# Check files and permissions
+ls -l
 
 --------------------------------------------------
-FINAL OUTPUT
+STEP 9 — TRANSFER FILE FROM SENDER TO RECEIVER
 --------------------------------------------------
 
-48. Open browser:
+WINDOW 2 — SENDER EC2 TERMINAL
 
-    http://13.60.162.216
-
-49. Your website should appear successfully.
-
---------------------------------------------------
-REMOTE WEBSITE UPDATE
---------------------------------------------------
-
-50. To update website later:
-
-    cd ~/static-website
-
-51. Upload updated files:
-
-    scp -i ~/static-website-new.pem index.html style.css script.js ubuntu@13.60.162.216:/home/ubuntu/
-
-52. SSH into EC2:
-
-    ssh -i ~/static-website-new.pem ubuntu@13.60.162.216
-
-53. Copy updated files:
-
-    sudo cp /home/ubuntu/index.html /var/www/html/
-
-    sudo cp /home/ubuntu/style.css /var/www/html/
-
-    sudo cp /home/ubuntu/script.js /var/www/html/
-
-54. Reload Nginx:
-
-    sudo systemctl reload nginx
-
-55. Refresh browser to see updates.
+# Securely transfer file.txt using SCP and receiver private IP
+scp -i receiver.pem file.txt ubuntu@172.31.34.57:/home/ubuntu/
 
 --------------------------------------------------
-IMPORTANT
+STEP 10 — CONNECT TO RECEIVER EC2
 --------------------------------------------------
 
-- Use PUBLIC IPv4 only for SSH.
-- Use chmod 400 for PEM file.
-- Keep PEM inside Linux home directory.
-- Do not use PEM directly from /mnt/c.
-- Wait for 3/3 checks passed before SSH.
+WINDOW 3 — RECEIVER EC2 TERMINAL
 
+# Connect to receiver EC2 instance
+ssh -i receiver.pem ubuntu@13.48.57.140
+
+--------------------------------------------------
+STEP 11 — VERIFY FILE ON RECEIVER
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# List files
+ls
+
+# Display transferred file content
+cat file.txt
+
+--------------------------------------------------
+STEP 12 — SECURE FILE PERMISSIONS
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Show current file permissions
+ls -l file.txt
+
+# Allow only owner to read/write file
+chmod 600 file.txt
+
+# Verify updated permissions
+ls -l file.txt
+
+--------------------------------------------------
+STEP 13 — CREATE SECURE DIRECTORY
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Create secure folder
+mkdir received_files
+
+# Allow only owner access to folder
+chmod 700 received_files
+
+# Verify directory permissions
+ls -ld received_files
+
+--------------------------------------------------
+STEP 14 — TRANSFER FILE INTO SECURE FOLDER
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Transfer file again into secure folder
+scp -i receiver.pem file.txt ubuntu@172.31.34.57:/home/ubuntu/received_files/
+
+--------------------------------------------------
+STEP 15 — VERIFY FINAL FILE
+--------------------------------------------------
+
+WINDOW 3 — RECEIVER EC2 TERMINAL
+
+# Open secure folder
+cd received_files
+
+# List files
+ls
+
+# Display file content
+cat file.txt
+
+--------------------------------------------------
+STEP 16 — SECURITY CLEANUP
+--------------------------------------------------
+
+WINDOW 2 — SENDER EC2 TERMINAL
+
+# Remove receiver key from sender machine
+rm receiver.pem
+
+# Verify removal
+ls
+
+--------------------------------------------------
+OUTPUT
+--------------------------------------------------
+
+1. Two EC2 Ubuntu instances created successfully.
+2. Secure SSH communication established.
+3. File transferred securely using SCP.
+4. File and folder permissions configured properly.
+5. Secure cloud-based file sharing completed successfully.
+
+--------------------------------------------------
+IMPORTANT COMMAND EXPLANATIONS
+--------------------------------------------------
+
+chmod 400 file.pem
+= Owner can only read PEM key
+
+chmod 600 file.txt
+= Owner can read/write file only
+
+chmod 700 folder
+= Owner has full access to folder only
+
+SSH
+= Secure Shell for remote login
+
+SCP
+= Secure Copy Protocol for secure file transfer
+
+Public IP
+= Used for internet access from laptop
+
+Private IP
+= Used for internal communication between EC2 instances
