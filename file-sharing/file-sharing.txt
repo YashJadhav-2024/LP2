@@ -1,4 +1,4 @@
-```text
+
 ==============================
 CREATE STATIC WEBSITE EC2 INSTANCE
 ==============================
@@ -318,4 +318,4 @@ IMPORTANT
 - Keep PEM inside Linux home directory.
 - Do not use PEM directly from /mnt/c.
 - Wait for 3/3 checks passed before SSH.
-```
+
