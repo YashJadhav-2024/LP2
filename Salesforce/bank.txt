@@ -209,3 +209,688 @@ else if(choice == 7) {
 else {
     System.debug('Invalid choice');
 }
+
+
+
+
+
+
+
+//=======================================================================
+CC - BANK ACCOUNT SYSTEM
+Salesforce Console Based Apex Application
+
+Objective:
+
+Develop a console-based Bank Account System in Salesforce using Apex programming language.
+
+The system manages employee bank account records.
+
+Fields:
+
+* Emp ID
+* Emp Name
+* Email
+* Birth Date
+* Department
+* Balance
+
+Operations:
+
+* Create Account
+* Display All Accounts
+* Search Account
+* Update Account
+* Deposit Money
+* Withdraw Money
+* Delete Account
+
+==================================================
+STEP 1 — LOGIN TO SALESFORCE
+============================
+
+Open:
+
+https://login.salesforce.com
+
+Login to Salesforce Developer Edition.
+
+==================================================
+STEP 2 — OPEN SETUP
+===================
+
+Click Gear Icon (top right).
+
+Click:
+
+Setup
+
+==================================================
+STEP 3 — CREATE CUSTOM OBJECT
+=============================
+
+Go:
+
+Object Manager
+
+Click:
+
+Create → Custom Object
+
+Enter:
+
+Label:
+Bank Account
+
+Plural Label:
+Bank Accounts
+
+Object Name:
+Bank_Account
+
+Record Name:
+Employee Name
+
+Data Type:
+Text
+
+Tick:
+
+* Allow Reports
+* Allow Search
+* Launch New Custom Tab Wizard
+
+Click:
+
+Save
+
+==================================================
+STEP 4 — CREATE CUSTOM TAB
+==========================
+
+If tab wizard opens:
+
+Choose any style.
+
+Click:
+Next → Next → Save
+
+If not:
+
+Go:
+Setup → Tabs
+
+Under:
+Custom Object Tabs
+
+Click:
+New
+
+Select:
+Bank Account
+
+Choose any style.
+
+Click:
+Next → Next → Save
+
+==================================================
+STEP 5 — CREATE EMP ID FIELD
+============================
+
+Go:
+
+Object Manager → Bank Account
+
+Click:
+
+Fields & Relationships
+
+Click:
+
+New
+
+Select:
+
+Number
+
+Click Next
+
+Enter:
+
+Field Label:
+Emp ID
+
+Length:
+10
+
+Decimal Places:
+0
+
+Field Name:
+Emp_ID
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 6 — CREATE EMP NAME FIELD
+==============================
+
+Select:
+
+Text
+
+Click Next
+
+Enter:
+
+Field Label:
+Emp Name
+
+Length:
+100
+
+Field Name:
+Emp_Name
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 7 — CREATE EMAIL FIELD
+===========================
+
+Select:
+
+Email
+
+Click Next
+
+Enter:
+
+Field Label:
+Email
+
+Field Name:
+Email
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 8 — CREATE BIRTH DATE FIELD
+================================
+
+Select:
+
+Date
+
+Click Next
+
+Enter:
+
+Field Label:
+Birth Date
+
+Field Name:
+Birth_Date
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 9 — CREATE DEPARTMENT FIELD
+================================
+
+Select:
+
+Text
+
+Click Next
+
+Enter:
+
+Field Label:
+Department
+
+Length:
+100
+
+Field Name:
+Department
+
+Click:
+Next → Next → Save & New
+
+==================================================
+STEP 10 — CREATE BALANCE FIELD
+==============================
+
+Select:
+
+Currency
+
+Click Next
+
+Enter:
+
+Field Label:
+Balance
+
+Length:
+16
+
+Decimal Places:
+2
+
+Field Name:
+Balance
+
+Click:
+Next → Next → Save
+
+==================================================
+STEP 11 — CREATE APEX CLASS
+===========================
+
+Go:
+
+Setup → Apex Classes
+
+Click:
+
+New
+
+Class Name:
+
+BankAccountSystem
+
+Delete old code completely.
+
+Paste this Apex code: 
+
+public class BankAccountSystem {
+
+```
+// CREATE ACCOUNT
+public static void createAccount(Integer empId, String empName, String email, Date birthDate, String department, Decimal balance) {
+
+    Bank_Account__c acc = new Bank_Account__c();
+
+    acc.Name = empName;
+    acc.Emp_ID__c = empId;
+    acc.Emp_Name__c = empName;
+    acc.Email__c = email;
+    acc.Birth_Date__c = birthDate;
+    acc.Department__c = department;
+    acc.Balance__c = balance;
+
+    insert acc;
+
+    System.debug('Account created successfully');
+    System.debug('Record Id: ' + acc.Id);
+}
+
+// DISPLAY ALL ACCOUNTS
+public static void displayAllAccounts() {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id, Emp_ID__c, Emp_Name__c, Email__c, Birth_Date__c, Department__c, Balance__c
+        FROM Bank_Account__c
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('No bank accounts found');
+    } else {
+        for(Bank_Account__c acc : accounts) {
+            System.debug('-------------------------');
+            System.debug('Record Id: ' + acc.Id);
+            System.debug('Emp ID: ' + acc.Emp_ID__c);
+            System.debug('Emp Name: ' + acc.Emp_Name__c);
+            System.debug('Email: ' + acc.Email__c);
+            System.debug('Birth Date: ' + acc.Birth_Date__c);
+            System.debug('Department: ' + acc.Department__c);
+            System.debug('Balance: ' + acc.Balance__c);
+        }
+    }
+}
+
+// SEARCH ACCOUNT BY EMP ID
+public static void searchAccount(Integer empId) {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id, Emp_ID__c, Emp_Name__c, Email__c, Birth_Date__c, Department__c, Balance__c
+        FROM Bank_Account__c
+        WHERE Emp_ID__c = :empId
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('Account not found');
+    } else {
+        Bank_Account__c acc = accounts[0];
+
+        System.debug('Account found');
+        System.debug('Record Id: ' + acc.Id);
+        System.debug('Emp ID: ' + acc.Emp_ID__c);
+        System.debug('Emp Name: ' + acc.Emp_Name__c);
+        System.debug('Email: ' + acc.Email__c);
+        System.debug('Birth Date: ' + acc.Birth_Date__c);
+        System.debug('Department: ' + acc.Department__c);
+        System.debug('Balance: ' + acc.Balance__c);
+    }
+}
+
+// UPDATE ACCOUNT
+public static void updateAccount(Integer empId, String newName, String newEmail, String newDepartment) {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id, Emp_Name__c, Email__c, Department__c
+        FROM Bank_Account__c
+        WHERE Emp_ID__c = :empId
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('Account not found');
+    } else {
+        Bank_Account__c acc = accounts[0];
+
+        acc.Name = newName;
+        acc.Emp_Name__c = newName;
+        acc.Email__c = newEmail;
+        acc.Department__c = newDepartment;
+
+        update acc;
+
+        System.debug('Account updated successfully');
+    }
+}
+
+// DEPOSIT MONEY
+public static void deposit(Integer empId, Decimal amount) {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id, Balance__c
+        FROM Bank_Account__c
+        WHERE Emp_ID__c = :empId
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('Account not found');
+    } else {
+        Bank_Account__c acc = accounts[0];
+
+        acc.Balance__c = acc.Balance__c + amount;
+
+        update acc;
+
+        System.debug('Amount deposited successfully');
+        System.debug('New Balance: ' + acc.Balance__c);
+    }
+}
+
+// WITHDRAW MONEY
+public static void withdraw(Integer empId, Decimal amount) {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id, Balance__c
+        FROM Bank_Account__c
+        WHERE Emp_ID__c = :empId
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('Account not found');
+    } else {
+        Bank_Account__c acc = accounts[0];
+
+        if(acc.Balance__c >= amount) {
+            acc.Balance__c = acc.Balance__c - amount;
+            update acc;
+
+            System.debug('Amount withdrawn successfully');
+            System.debug('New Balance: ' + acc.Balance__c);
+        } else {
+            System.debug('Insufficient balance');
+        }
+    }
+}
+
+// DELETE ACCOUNT
+public static void deleteAccount(Integer empId) {
+
+    List<Bank_Account__c> accounts = [
+        SELECT Id
+        FROM Bank_Account__c
+        WHERE Emp_ID__c = :empId
+    ];
+
+    if(accounts.isEmpty()) {
+        System.debug('Account not found');
+    } else {
+        delete accounts[0];
+        System.debug('Account deleted successfully');
+    }
+}
+```
+
+}
+
+Click:
+
+Save
+
+==================================================
+STEP 12 — OPEN DEVELOPER CONSOLE
+================================
+
+Click Gear Icon.
+
+Click:
+
+Developer Console
+
+==================================================
+STEP 13 — OPEN EXECUTE ANONYMOUS WINDOW
+=======================================
+
+Inside Developer Console:
+
+Debug → Open Execute Anonymous Window
+
+OR
+
+Press:
+
+CTRL + E
+
+==================================================
+STEP 14 — PASTE MENU DRIVEN CODE
+================================
+
+Delete old code.
+
+Paste this code: 
+
+Integer choice = 1;
+
+System.debug('===== BANK ACCOUNT SYSTEM =====');
+System.debug('1. Create Account');
+System.debug('2. Display All Accounts');
+System.debug('3. Search Account');
+System.debug('4. Update Account');
+System.debug('5. Deposit Money');
+System.debug('6. Withdraw Money');
+System.debug('7. Delete Account');
+
+if(choice == 1) {
+BankAccountSystem.createAccount(
+101,
+'Dhruv Dhone',
+'[dhruv@gmail.com](mailto:dhruv@gmail.com)',
+Date.newInstance(2005, 5, 14),
+'Computer Engineering',
+5000
+);
+}
+else if(choice == 2) {
+BankAccountSystem.displayAllAccounts();
+}
+else if(choice == 3) {
+BankAccountSystem.searchAccount(101);
+}
+else if(choice == 4) {
+BankAccountSystem.updateAccount(
+101,
+'Dhruv D',
+'[dhruvupdated@gmail.com](mailto:dhruvupdated@gmail.com)',
+'IT'
+);
+}
+else if(choice == 5) {
+BankAccountSystem.deposit(101, 2000);
+}
+else if(choice == 6) {
+BankAccountSystem.withdraw(101, 1000);
+}
+else if(choice == 7) {
+BankAccountSystem.deleteAccount(101);
+}
+else {
+System.debug('Invalid choice');
+}
+
+==================================================
+STEP 15 — EXECUTE PROGRAM
+=========================
+
+Click:
+
+Execute
+
+==================================================
+STEP 16 — VIEW OUTPUT
+=====================
+
+Open:
+
+Logs
+
+Double click latest log.
+
+Open:
+
+Debug Only
+
+==================================================
+STEP 17 — TEST ALL OPERATIONS
+=============================
+
+Change:
+
+Integer choice = 1;
+
+to different values.
+
+==================================================
+CREATE ACCOUNT
+==============
+
+Integer choice = 1;
+
+Expected:
+Account created successfully
+
+==================================================
+DISPLAY ALL ACCOUNTS
+====================
+
+Integer choice = 2;
+
+Expected:
+All account records displayed
+
+==================================================
+SEARCH ACCOUNT
+==============
+
+Integer choice = 3;
+
+Expected:
+Account found
+
+==================================================
+UPDATE ACCOUNT
+==============
+
+Integer choice = 4;
+
+Expected:
+Account updated successfully
+
+==================================================
+DEPOSIT MONEY
+=============
+
+Integer choice = 5;
+
+Expected:
+Amount deposited successfully
+
+==================================================
+WITHDRAW MONEY
+==============
+
+Integer choice = 6;
+
+Expected:
+Amount withdrawn successfully
+
+==================================================
+DELETE ACCOUNT
+==============
+
+Integer choice = 7;
+
+Expected:
+Account deleted successfully
+
+==================================================
+FINAL PRACTICAL EXPLANATION
+===========================
+
+This Bank Account System is developed using Salesforce Apex programming language.
+
+Custom Object:
+Bank_Account__c
+
+Fields:
+
+* Emp ID
+* Emp Name
+* Email
+* Birth Date
+* Department
+* Balance
+
+The application performs CRUD operations using Apex.
+
+SOQL queries are used to fetch records.
+
+DML operations:
+
+* insert
+* update
+* delete
+
+Console based execution is done using Execute Anonymous Window.
+
+Features:
+
+* Create Account
+* Search Account
+* Update Account
+* Deposit
+* Withdraw
+* Delete Account
+
+System.debug statements display outputs in logs.
