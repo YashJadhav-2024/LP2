@@ -246,3 +246,242 @@
     </div>
 
 </apex:page>
+
+
+/* 
+CC - Product Inventory Management System
+
+Develop an application in Salesforce using Apex Programming Language 
+and Visualforce Page to manage Product Inventory records.
+
+Custom Object Required:
+Product_Inventory__c
+
+Fields Required:
+Name                    Text
+Serial_No__c            Text
+Manufacture_Date__c     Date
+Expiry_Date__c          Date
+*/
+
+/*
+========================================================
+STEPS TO EXECUTE PRODUCT INVENTORY MANAGEMENT SYSTEM
+IN SALESFORCE
+========================================================
+
+1. Login to Salesforce.
+
+2. Click on Setup.
+
+3. Open Object Manager.
+
+4. Click Create.
+
+5. Click Custom Object.
+
+6. Create Custom Object using following details:
+
+   Label: Product Inventory
+   Plural Label: Product Inventories
+   Object Name: Product_Inventory
+   Record Name: Product Name
+   Data Type: Text
+
+7. Click Save.
+
+========================================================
+CREATE FIELDS
+========================================================
+
+8. Open Product Inventory Object.
+
+9. Click Fields & Relationships.
+
+10. Click New.
+
+--------------------------------------------------------
+FIELD 1
+--------------------------------------------------------
+
+Data Type: Text
+
+Field Label: Serial No
+
+Field Name:
+Serial_No
+
+Length:
+50
+
+Click Next → Next → Save
+
+--------------------------------------------------------
+FIELD 2
+--------------------------------------------------------
+
+Data Type: Date
+
+Field Label:
+Manufacture Date
+
+Field Name:
+Manufacture_Date
+
+Click Next → Next → Save
+
+--------------------------------------------------------
+FIELD 3
+--------------------------------------------------------
+
+Data Type: Date
+
+Field Label:
+Expiry Date
+
+Field Name:
+Expiry_Date
+
+Click Next → Next → Save
+
+========================================================
+CREATE APEX CLASS
+========================================================
+
+11. Open Developer Console.
+
+12. Click File.
+
+13. Click New.
+
+14. Click Apex Class.
+
+15. Class Name:
+
+ProductInventoryController
+
+16. Delete default code.
+
+17. Paste the given Apex Controller code.
+
+18. Save the class using Ctrl + S.
+
+========================================================
+CREATE VISUALFORCE PAGE
+========================================================
+
+19. In Developer Console click:
+
+File → New → Visualforce Page
+
+20. Page Name:
+
+ProductInventoryPage
+
+21. Paste the Visualforce page code.
+
+22. Save the page.
+
+========================================================
+RUN APPLICATION
+========================================================
+
+23. Open App Launcher.
+
+24. Search:
+Visualforce Pages
+
+25. Open:
+ProductInventoryPage
+
+OR
+
+Open in browser using:
+
+/apex/ProductInventoryPage
+
+========================================================
+APPLICATION OPERATIONS
+========================================================
+
+ADD PRODUCT
+
+1. Enter Product Name.
+2. Enter Serial Number.
+3. Select Manufacture Date.
+4. Select Expiry Date.
+5. Click Save Product button.
+6. Product will be stored in Salesforce database.
+
+--------------------------------------------------------
+
+VIEW PRODUCTS
+
+1. All products will be displayed in table format.
+2. Records are shown using SOQL query.
+3. Latest records appear first.
+
+--------------------------------------------------------
+
+EDIT PRODUCT
+
+1. Click Edit button beside product.
+2. Product details load into form.
+3. Update required values.
+4. Click Update Product.
+5. Record gets updated successfully.
+
+--------------------------------------------------------
+
+DELETE PRODUCT
+
+1. Click Delete button beside product.
+2. Selected record gets deleted.
+3. Product list refreshes automatically.
+
+--------------------------------------------------------
+
+CLEAR FORM
+
+1. Click Clear button.
+2. All form values become empty.
+
+========================================================
+IMPORTANT POINTS
+========================================================
+
+1. Visualforce Page is used for frontend UI.
+
+2. Apex Controller handles backend logic.
+
+3. SOQL queries are used to fetch records.
+
+4. DML Operations used:
+   insert
+   update
+   delete
+
+5. Exception handling is done using:
+   try-catch block
+
+6. Date conversion handled using:
+   Date.valueOf()
+
+7. Success and error messages shown using:
+   ApexPages.addMessage()
+
+========================================================
+OUTPUT
+========================================================
+
+The application allows user to:
+
+1. Add Product
+2. View Product
+3. Edit Product
+4. Update Product
+5. Delete Product
+6. Manage inventory records successfully
+
+========================================================
+*/
