@@ -308,3 +308,165 @@ public class AStarPuzzle {
 // Driver function of program.
 // Takes initial state and goal state input.
 // Calls solve() function.
+
+
+//------------------------------------------------------------------------
+
+// Algorithm: A* (A-Star) Algorithm for 8 Puzzle Problem
+
+// 1. Start program
+
+// 2. Input initial state and goal state
+
+// 3. Calculate heuristic value h(n)
+//    using Manhattan Distance
+
+// 4. Add initial state into Priority Queue
+
+// 5. Repeat until queue becomes empty:
+
+//      a. Remove state with minimum f(n)
+
+//      b. Print current state
+
+//      c. Check if current state is goal state
+//            If yes:
+//                Print solution
+//                Stop
+
+//      d. Generate all possible next states
+//         by moving blank tile:
+//            - Left
+//            - Right
+//            - Up
+//            - Down
+
+//      e. For each valid next state:
+//            Calculate:
+//            g(n) = number of moves
+//            h(n) = heuristic cost
+//            f(n) = g(n) + h(n)
+
+//      f. If state not already visited:
+//            Add into Priority Queue
+
+// 6. Repeat process until goal state reached
+
+// 7. End
+
+
+// A* Formula:
+// f(n) = g(n) + h(n)
+
+// g(n):
+// Actual cost from start state
+
+// h(n):
+// Estimated cost to reach goal
+
+// f(n):
+// Total estimated cost
+
+
+// Heuristic Used:
+// Manhattan Distance
+
+// Math.abs(i-r) + Math.abs(j-c)
+
+
+// Priority Queue:
+// Always selects state with minimum cost first.
+
+//========================================================
+// Priority Queue Execution in A* 8 Puzzle
+
+// Priority Queue stores states according to
+// smallest f(n) = g(n) + h(n)
+
+// Smallest cost state stays at FRONT.
+
+
+// Initial State:
+// 1 2 3
+// 4 0 6
+// 7 5 8
+
+// g = 0
+// h = 2
+// f = 2
+
+
+// Queue after inserting initial state:
+
+// FRONT -> | State(f=2) | <- REAR
+
+
+// pq.poll()
+// Removes state with minimum cost.
+
+
+// Generate next possible states:
+
+
+// State 1 (Move LEFT)
+// 1 2 3
+// 0 4 6
+// 7 5 8
+
+// g=1 h=3 f=4
+
+
+// State 2 (Move RIGHT)
+// 1 2 3
+// 4 6 0
+// 7 5 8
+
+// g=1 h=3 f=4
+
+
+// State 3 (Move DOWN)
+// 1 2 3
+// 4 5 6
+// 7 0 8
+
+// g=1 h=1 f=2
+
+
+// Priority Queue after insertion:
+
+// FRONT -> | State(f=2) | State(f=4) | State(f=4) | <- REAR
+
+
+// pq.poll()
+// Removes best state first.
+
+// Removed:
+// State(f=2)
+
+
+// Remaining Queue:
+
+// FRONT -> | State(f=4) | State(f=4) | <- REAR
+
+
+// Generate next states from best node.
+
+// Goal State:
+// 1 2 3
+// 4 5 6
+// 7 8 0
+
+// g=2 h=0 f=2
+
+
+// Insert goal state:
+
+// FRONT -> | Goal(f=2) | State(f=4) | State(f=4) | <- REAR
+
+
+// pq.poll()
+// Goal state selected first because
+// it has minimum cost.
+
+
+// Goal State Reached.
