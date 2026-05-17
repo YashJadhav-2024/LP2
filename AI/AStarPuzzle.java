@@ -150,3 +150,161 @@ public class AStarPuzzle {
         solve(start);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// A* (A-Star) Algorithm
+// A* is an AI search algorithm used to find the shortest/best path to goal state.
+// It is commonly used in:
+// - 8 Puzzle Problem
+// - GPS Navigation
+// - Robot Path Finding
+// - Games and AI Search Problems
+
+// A* Formula:
+// f(n) = g(n) + h(n)
+
+// f(n) -> Total estimated cost
+// g(n) -> Actual cost from start node to current node
+// h(n) -> Heuristic estimated cost from current node to goal
+
+// In this program:
+// g = number of moves made
+// h = Manhattan Distance heuristic
+
+// Manhattan Distance:
+// Calculates distance of each tile from its correct position.
+
+// -------------------------------------------------------------
+
+// class State implements Comparable<State>
+// Represents one puzzle state.
+// Comparable is used so PriorityQueue can sort states based on cost.
+
+
+// int[][] a
+// Stores 3x3 puzzle matrix.
+
+
+// int x, y
+// Position of blank tile (0).
+
+
+// int g
+// Number of moves from start state.
+
+
+// int h
+// Heuristic cost (estimated distance from goal).
+
+
+// compareTo(State s)
+// Compares states based on f(n) = g + h.
+// State with smaller cost gets higher priority.
+
+
+// static int[][] goal
+// Stores goal state puzzle.
+
+
+// print(State s)
+// Prints current puzzle state.
+
+
+// isGoal(State s)
+// Checks whether current state matches goal state.
+// Returns true if goal reached.
+
+
+// heuristic(State s)
+// Calculates Manhattan Distance heuristic value.
+// Lower heuristic means state is closer to goal.
+
+
+// Math.abs()
+// Returns absolute value.
+// Used in Manhattan Distance calculation.
+
+
+// valid(int x, int y)
+// Checks whether puzzle move is inside matrix boundary.
+
+
+// getKey(State s)
+// Converts puzzle state into string.
+// Used for checking visited states.
+
+
+// inputState(Scanner sc, String msg)
+// Takes puzzle input from user.
+// Also finds blank tile position.
+
+
+// solve(State start)
+// Main A* search function.
+
+
+// PriorityQueue<State> pq
+// Stores states in sorted order based on lowest cost.
+// A* always explores best state first.
+
+
+// HashSet<String> vis
+// Stores visited states to avoid repeated processing.
+
+
+// dx[] and dy[]
+// Arrays used for movement directions.
+// Left, Right, Up, Down movement.
+
+
+// pq.poll()
+// Removes and returns state with minimum cost.
+
+
+// if (isGoal(cur))
+// Stops program when goal state is reached.
+
+
+// State next = new State()
+// Creates new child state after movement.
+
+
+// next.g = cur.g + 1
+// Increases move count.
+
+
+// next.h = heuristic(next)
+// Calculates heuristic for new state.
+
+
+// vis.contains(key)
+// Prevents revisiting already explored states.
+
+
+// Scanner sc
+// Used for user input.
+
+
+// main()
+// Driver function of program.
+// Takes initial state and goal state input.
+// Calls solve() function.
