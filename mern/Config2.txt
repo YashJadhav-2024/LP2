@@ -1,0 +1,796 @@
+ONLINE EVENT REGISTRATION SYSTEM DEPLOYMENT ON AWS EC2
+METHOD: DEPLOY USING DOCKER + MONGODB CONTAINER
+
+Project:
+Online Event Registration System
+
+Technology Used:
+Frontend: React + Vite
+Backend: Node.js + Express
+Database: MongoDB using Docker
+Server: AWS EC2 Ubuntu
+Web Server: Nginx
+Process Manager: PM2
+
+==================================================
+STEP 1: CREATE AWS EC2 INSTANCE
+
+1. Open AWS Console.
+2. Go to EC2.
+3. Click Launch Instance.
+
+Use these settings:
+
+Name:
+event-registration-server
+
+AMI:
+Ubuntu Server 24.04 LTS
+
+Instance type:
+t3.micro
+
+Key pair:
+Create new key pair
+
+Key pair name:
+event-registration-key
+
+Key type:
+RSA
+
+File format:
+.pem
+
+Download:
+
+event-registration-key.pem
+
+==================================================
+STEP 2: CONFIGURE SECURITY GROUP
+
+Add inbound rules:
+
+Type          Port      Source
+SSH           22        My IP
+HTTP          80        Anywhere IPv4
+HTTPS         443       Anywhere IPv4
+Custom TCP    5000      Anywhere IPv4
+Custom TCP    5173      Anywhere IPv4
+Custom TCP    27017     Anywhere IPv4
+
+Explanation:
+
+22    = SSH connection
+80    = Final website using Nginx
+443   = HTTPS
+5000  = Backend API
+5173  = React Vite testing
+27017 = MongoDB Docker container
+
+==================================================
+STEP 3: CONNECT TO EC2 INSTANCE
+
+Open Ubuntu WSL terminal.
+
+Go to Downloads:
+
+cd /mnt/c/Users/jadha/Downloads
+
+Copy PEM file to home:
+
+cp event-registration-key.pem ~/
+
+Go home:
+
+cd ~
+
+Give permission:
+
+chmod 400 event-registration-key.pem
+
+Connect to EC2:
+
+ssh -i event-registration-key.pem ubuntu@YOUR_PUBLIC_IP
+
+Example:
+
+ssh -i event-registration-key.pem ubuntu@56.228.42.163
+
+If asked:
+
+Are you sure you want to continue connecting?
+
+Type:
+
+yes
+
+==================================================
+STEP 4: UPDATE UBUNTU SERVER
+
+Run:
+
+sudo apt update
+
+sudo apt upgrade -y
+
+==================================================
+STEP 5: INSTALL REQUIRED SOFTWARE
+
+Install Git, Nginx, Docker:
+
+sudo apt install git nginx docker.io -y
+
+Install Node.js 20:
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+sudo apt install nodejs -y
+
+Check versions:
+
+node -v
+
+npm -v
+
+docker --version
+
+nginx -v
+
+==================================================
+STEP 6: START DOCKER
+
+Run:
+
+sudo systemctl start docker
+
+sudo systemctl enable docker
+
+sudo usermod -aG docker ubuntu
+
+newgrp docker
+
+Check Docker:
+
+docker ps
+
+==================================================
+STEP 7: CREATE PROJECT FOLDER
+
+Go home:
+
+cd ~
+
+Create project folder:
+
+mkdir event-registration-system
+
+Go inside:
+
+cd event-registration-system
+
+Create folders:
+
+mkdir backend frontend
+
+==================================================
+STEP 8: CREATE DOCKER COMPOSE FILE
+
+Go project folder:
+
+cd ~/event-registration-system
+
+Create docker-compose.yml:
+
+nano docker-compose.yml
+
+Paste:
+
+services:
+mongodb:
+image: mongo:7
+container_name: event-mongodb
+restart: always
+ports:
+- "27017:27017"
+
+Save:
+
+CTRL + O
+Enter
+CTRL + X
+
+==================================================
+STEP 9: START MONGODB CONTAINER
+
+Run:
+
+docker compose up -d
+
+Check MongoDB container:
+
+docker ps
+
+Expected container:
+
+event-mongodb
+
+==================================================
+STEP 10: CREATE BACKEND PACKAGE.JSON
+
+Go backend folder:
+
+cd ~/event-registration-system/backend
+
+Create package.json:
+
+nano package.json
+
+Paste:
+
+{
+"name": "event-registration-backend",
+"version": "1.0.0",
+"main": "server.js",
+"scripts": {
+"start": "node server.js"
+},
+"dependencies": {
+"cors": "^2.8.5",
+"dotenv": "^16.4.5",
+"express": "^4.18.3",
+"mongoose": "^8.2.1"
+}
+}
+
+Save.
+
+==================================================
+STEP 11: CREATE SERVER.JS
+
+Create server.js:
+
+nano server.js
+
+Paste:
+
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const PORT = process.env.PORT || 5000;
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+console.log("MongoDB connected successfully");
+})
+.catch((error) => {
+console.log("MongoDB connection error:", error.message);
+});
+
+const registrationSchema = new mongoose.Schema({
+fullName: String,
+email: String,
+phone: String,
+college: String,
+eventName: String
+});
+
+const Registration = mongoose.model(
+"Registration",
+registrationSchema
+);
+
+app.get("/", (req, res) => {
+res.send("Online Event Registration Backend Running");
+});
+
+app.post("/api/register", async (req, res) => {
+
+try {
+
+    const registration = new Registration(req.body);
+
+    await registration.save();
+
+    res.json({
+        success: true,
+        message: "Registration successful"
+    });
+
+} catch (error) {
+
+    res.status(500).json({
+        success: false,
+        message: "Server error"
+    });
+}
+
+});
+
+app.get("/api/registrations", async (req, res) => {
+
+try {
+
+    const data = await Registration.find();
+
+    res.json({
+        success: true,
+        data
+    });
+
+} catch (error) {
+
+    res.status(500).json({
+        success: false
+    });
+}
+
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+console.log("Server running on port " + PORT);
+});
+
+Save.
+
+==================================================
+STEP 12: CREATE .ENV FILE
+
+Create .env:
+
+nano .env
+
+Paste:
+
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/eventdb
+
+Save.
+
+==================================================
+STEP 13: INSTALL BACKEND DEPENDENCIES
+
+Run:
+
+npm install
+
+==================================================
+STEP 14: RUN BACKEND SERVER
+
+Run:
+
+npm start
+
+Expected:
+
+MongoDB connected successfully
+Server running on port 5000
+
+Open browser:
+
+http://YOUR_PUBLIC_IP:5000
+
+Expected:
+
+Online Event Registration Backend Running
+
+Keep terminal open.
+
+==================================================
+STEP 15: OPEN SECOND TERMINAL
+
+Open second Ubuntu WSL terminal.
+
+Connect again:
+
+ssh -i ~/event-registration-key.pem ubuntu@YOUR_PUBLIC_IP
+
+==================================================
+STEP 16: CREATE FRONTEND PACKAGE.JSON
+
+Go frontend folder:
+
+cd ~/event-registration-system/frontend
+
+Create package.json:
+
+nano package.json
+
+Paste:
+
+{
+"name": "event-registration-frontend",
+"private": true,
+"version": "1.0.0",
+"scripts": {
+"dev": "vite --host 0.0.0.0",
+"build": "vite build"
+},
+"dependencies": {
+"axios": "^1.6.7",
+"react": "^18.2.0",
+"react-dom": "^18.2.0",
+"vite": "^5.1.0",
+"@vitejs/plugin-react": "^4.2.1"
+}
+}
+
+Save.
+
+==================================================
+STEP 17: CREATE INDEX.HTML
+
+nano index.html
+
+Paste:
+
+<!DOCTYPE html><html>
+<head>
+  <title>Event Registration</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>Save.
+
+==================================================
+STEP 18: CREATE SRC FOLDER
+
+mkdir -p src
+
+==================================================
+STEP 19: CREATE MAIN.JSX
+
+nano src/main.jsx
+
+Paste:
+
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom/client";
+import axios from "axios";
+
+function App() {
+
+const API = "http://YOUR_PUBLIC_IP:5000";
+
+const [formData, setFormData] = useState({
+fullName: "",
+email: "",
+phone: "",
+college: "",
+eventName: ""
+});
+
+const [registrations, setRegistrations] = useState([]);
+
+const fetchRegistrations = async () => {
+
+const response =
+  await axios.get(API + "/api/registrations");
+
+setRegistrations(response.data.data);
+
+};
+
+useEffect(() => {
+fetchRegistrations();
+}, []);
+
+const handleChange = (e) => {
+
+setFormData({
+  ...formData,
+  [e.target.name]: e.target.value
+});
+
+};
+
+const handleSubmit = async (e) => {
+
+e.preventDefault();
+
+await axios.post(
+  API + "/api/register",
+  formData
+);
+
+fetchRegistrations();
+
+setFormData({
+  fullName: "",
+  email: "",
+  phone: "",
+  college: "",
+  eventName: ""
+});
+
+};
+
+return (
+<div style={{padding:"30px"}}>
+
+  <h1>Online Event Registration System</h1>
+
+  <form onSubmit={handleSubmit}>
+
+    <input
+      type="text"
+      name="fullName"
+      placeholder="Full Name"
+      value={formData.fullName}
+      onChange={handleChange}
+    />
+
+    <br /><br />
+
+    <input
+      type="email"
+      name="email"
+      placeholder="Email"
+      value={formData.email}
+      onChange={handleChange}
+    />
+
+    <br /><br />
+
+    <input
+      type="text"
+      name="phone"
+      placeholder="Phone"
+      value={formData.phone}
+      onChange={handleChange}
+    />
+
+    <br /><br />
+
+    <input
+      type="text"
+      name="college"
+      placeholder="College"
+      value={formData.college}
+      onChange={handleChange}
+    />
+
+    <br /><br />
+
+    <input
+      type="text"
+      name="eventName"
+      placeholder="Event Name"
+      value={formData.eventName}
+      onChange={handleChange}
+    />
+
+    <br /><br />
+
+    <button type="submit">
+      Register
+    </button>
+
+  </form>
+
+  <hr />
+
+  <h2>Registered Participants</h2>
+
+  {
+    registrations.map((item) => (
+      <div key={item._id}>
+        <p>
+          {item.fullName} - {item.eventName}
+        </p>
+      </div>
+    ))
+  }
+
+</div>
+
+);
+}
+
+ReactDOM.createRoot(
+document.getElementById("root")
+).render(<App />);
+
+Save.
+
+IMPORTANT:
+
+Replace:
+
+YOUR_PUBLIC_IP
+
+with your actual EC2 public IP.
+
+==================================================
+STEP 20: INSTALL FRONTEND DEPENDENCIES
+
+Run:
+
+npm install
+
+==================================================
+STEP 21: RUN FRONTEND
+
+Run:
+
+npm run dev
+
+Open browser:
+
+http://YOUR_PUBLIC_IP:5173
+
+Test:
+
+- Register event
+- View participants
+
+==================================================
+STEP 22: BUILD FRONTEND
+
+Stop frontend:
+
+CTRL + C
+
+Build frontend:
+
+npm run build
+
+==================================================
+STEP 23: DEPLOY FRONTEND USING NGINX
+
+Remove default Nginx page:
+
+sudo rm -rf /var/www/html/*
+
+Copy frontend build:
+
+sudo cp -r dist/* /var/www/html/
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+sudo systemctl enable nginx
+
+Open website:
+
+http://YOUR_PUBLIC_IP
+
+==================================================
+STEP 24: INSTALL PM2
+
+sudo npm install -g pm2
+
+==================================================
+STEP 25: START BACKEND USING PM2
+
+Go backend:
+
+cd ~/event-registration-system/backend
+
+Stop backend if running:
+
+CTRL + C
+
+Start backend:
+
+pm2 start server.js --name event-backend
+
+Save PM2 process:
+
+pm2 save
+
+Check PM2:
+
+pm2 list
+
+Expected:
+
+event-backend   online
+
+==================================================
+STEP 26: FINAL TESTING URLS
+
+Frontend:
+
+http://YOUR_PUBLIC_IP
+
+Backend:
+
+http://YOUR_PUBLIC_IP:5000
+
+API:
+
+http://YOUR_PUBLIC_IP:5000/api/registrations
+
+==================================================
+STEP 27: USEFUL COMMANDS
+
+Check MongoDB container:
+
+docker ps
+
+Check backend:
+
+pm2 list
+
+Restart backend:
+
+pm2 restart event-backend
+
+View logs:
+
+pm2 logs event-backend
+
+Restart Nginx:
+
+sudo systemctl restart nginx
+
+Check Nginx:
+
+sudo systemctl status nginx
+
+==================================================
+STEP 28: TROUBLESHOOTING
+
+If MongoDB not running:
+
+docker ps
+
+If missing:
+
+cd ~/event-registration-system
+
+docker compose up -d
+
+Check logs:
+
+docker logs event-mongodb
+
+If frontend not loading:
+
+Check security group port 80 and 5173.
+
+If backend not working:
+
+Check:
+
+pm2 list
+
+Restart:
+
+pm2 restart event-backend
+
+Check backend URL:
+
+http://YOUR_PUBLIC_IP:5000
+
+==================================================
+FINAL RESULT
+
+The Online Event Registration System was successfully deployed on AWS EC2.
+
+Frontend:
+React + Vite served using Nginx
+
+Backend:
+Node.js + Express running using PM2
+
+Database:
+MongoDB running inside Docker container
+
+Features:
+
+- Event Registration
+- Store participant details
+- View registered participants
+- Cloud deployment on AWS EC2
