@@ -1,0 +1,549 @@
+<!--
+==================================================
+ECOMMERCE MERN AWS DEPLOYMENT STEPS
+PROJECT ALREADY DOWNLOADED IN DOWNLOADS
+==================================================
+
+PROJECT DETAILS
+
+Project Name: ecommerce-mern
+Instance Name: e-commerce
+Public IPv4 Address: 54.221.71.99
+Private IPv4 Address: 172.31.30.161
+Key Pair Name: e-commerce
+Key File Name: e-commerce.pem
+EC2 Username: ubuntu
+
+==================================================
+STEP 1: KEEP FILES READY ON UBUNTU PC
+==================================================
+
+Inside Downloads folder keep:
+
+1. e-commerce.pem
+2. ecommerce-mern
+
+Project folder must contain:
+
+package.json
+package-lock.json
+server.js
+public
+
+Check frontend folder:
+
+public/index.html
+
+==================================================
+STEP 2: OPEN TERMINAL ON UBUNTU PC
+==================================================
+
+Go to Downloads folder:
+
+cd ~/Downloads
+
+Check files:
+
+ls
+
+Expected:
+
+e-commerce.pem
+ecommerce-mern
+
+==================================================
+STEP 3: GIVE PERMISSION TO PEM FILE
+==================================================
+
+# PEM file permission required for SSH security
+
+chmod 400 e-commerce.pem
+
+==================================================
+STEP 4: CHECK PROJECT FOLDER BEFORE UPLOAD
+==================================================
+
+Go inside project:
+
+cd ~/Downloads/ecommerce-mern
+
+Check files:
+
+ls
+
+Expected:
+
+package.json
+package-lock.json
+server.js
+public
+
+Check public folder:
+
+ls public
+
+Expected:
+
+index.html
+
+==================================================
+STEP 5: UPLOAD PROJECT TO AWS EC2
+==================================================
+
+Go back to Downloads:
+
+cd ~/Downloads
+
+# Upload complete project folder to EC2 Ubuntu server
+
+scp -i e-commerce.pem -r ecommerce-mern ubuntu@54.221.71.99:/home/ubuntu/
+
+==================================================
+STEP 6: CONNECT TO AWS EC2
+==================================================
+
+# SSH connection to EC2 Ubuntu machine
+
+ssh -i e-commerce.pem ubuntu@54.221.71.99
+
+If asked:
+
+Are you sure you want to continue connecting?
+
+Type:
+
+yes
+
+==================================================
+STEP 7: UPDATE UBUNTU PACKAGES
+==================================================
+
+# Update Ubuntu package list
+
+sudo apt update
+
+==================================================
+STEP 8: INSTALL REQUIRED SOFTWARE
+==================================================
+
+# Install Node.js runtime
+# Install npm package manager
+# Install Nginx web server
+# Install Docker container engine
+
+sudo apt install nodejs npm nginx docker.io -y
+
+==================================================
+STEP 9: START DOCKER
+==================================================
+
+# Enable Docker service at boot
+
+sudo systemctl enable docker
+
+# Start Docker service now
+
+sudo systemctl start docker
+
+# Give ubuntu user Docker permission
+
+sudo usermod -aG docker ubuntu
+
+==================================================
+STEP 10: LOGOUT AND LOGIN AGAIN
+==================================================
+
+# Required after Docker permission change
+
+exit
+
+Reconnect:
+
+cd ~/Downloads
+
+ssh -i e-commerce.pem ubuntu@54.221.71.99
+
+==================================================
+STEP 11: GO TO PROJECT FOLDER
+==================================================
+
+cd /home/ubuntu/ecommerce-mern
+
+==================================================
+STEP 12: CHECK PROJECT FILES ON EC2
+==================================================
+
+ls
+
+Expected:
+
+package.json
+package-lock.json
+server.js
+public
+
+==================================================
+STEP 13: START MONGODB USING DOCKER
+==================================================
+
+# Remove old MongoDB container if exists
+
+docker rm -f ecommerce-mongo 2>/dev/null
+
+# Run MongoDB inside Docker container
+#
+# -d
+# Runs container in background
+#
+# --name ecommerce-mongo
+# Container name
+#
+# -p 127.0.0.1:27017:27017
+# Maps MongoDB port locally
+#
+# -v ecommerce_mongo_data:/data/db
+# Persistent database storage volume
+#
+# mongo:7
+# MongoDB version 7 image
+
+docker run -d \
+--name ecommerce-mongo \
+-p 127.0.0.1:27017:27017 \
+-v ecommerce_mongo_data:/data/db \
+mongo:7
+
+==================================================
+STEP 14: CHECK MONGODB CONTAINER
+==================================================
+
+# Shows running Docker containers
+
+docker ps
+
+Expected:
+
+ecommerce-mongo
+
+==================================================
+STEP 15: INSTALL NODE DEPENDENCIES
+==================================================
+
+cd /home/ubuntu/ecommerce-mern
+
+# Install backend project dependencies
+
+npm install
+
+==================================================
+STEP 16: TEST APPLICATION MANUALLY
+==================================================
+
+# Start Node.js application manually
+
+node server.js
+
+Expected:
+
+Server running on port 5000
+MongoDB connected successfully
+Sample products inserted
+
+Stop app:
+
+CTRL + C
+
+==================================================
+STEP 17: INSTALL PM2
+==================================================
+
+# PM2 keeps Node app running permanently
+
+sudo npm install -g pm2
+
+==================================================
+STEP 18: START APPLICATION USING PM2
+==================================================
+
+# Remove old PM2 process if exists
+
+pm2 delete ecommerce-app 2>/dev/null
+
+# Start Node.js app in background
+
+pm2 start server.js --name ecommerce-app
+
+# Save PM2 process list
+
+pm2 save
+
+# Enable PM2 auto startup on reboot
+
+pm2 startup
+
+==================================================
+STEP 19: RUN PM2 STARTUP COMMAND
+==================================================
+
+After pm2 startup, PM2 may show:
+
+sudo env PATH=...
+
+Copy full command and run it once.
+
+Example:
+
+sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu
+
+Then save again:
+
+pm2 save
+
+==================================================
+STEP 20: CHECK APPLICATION STATUS
+==================================================
+
+# Check PM2 process status
+
+pm2 status
+
+Expected:
+
+ecommerce-app online
+
+==================================================
+STEP 21: TEST BACKEND LOCALLY
+==================================================
+
+# Test backend homepage
+
+curl http://localhost:5000
+
+# Test products API
+
+curl http://localhost:5000/api/products
+
+Expected:
+Product JSON data
+
+==================================================
+STEP 22: REMOVE OLD NGINX CONFIG
+==================================================
+
+# Remove default nginx page config
+
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Remove old ecommerce config if exists
+
+sudo rm -f /etc/nginx/sites-available/ecommerce
+
+==================================================
+STEP 23: CREATE NGINX REVERSE PROXY CONFIG
+==================================================
+
+# Nginx forwards public HTTP requests
+# to Node.js app running on port 5000
+
+sudo tee /etc/nginx/sites-available/ecommerce > /dev/null <<'EOF'
+server {
+
+    listen 80;
+
+    server_name _;
+
+    location / {
+
+        # Forward request to Node.js app
+
+        proxy_pass http://127.0.0.1:5000;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+
+        proxy_set_header Connection 'upgrade';
+
+        proxy_set_header Host $host;
+
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+
+==================================================
+STEP 24: ENABLE NGINX CONFIG
+==================================================
+
+# Create symbolic link to enable site
+
+sudo ln -s /etc/nginx/sites-available/ecommerce /etc/nginx/sites-enabled/ecommerce
+
+==================================================
+STEP 25: TEST NGINX CONFIG
+==================================================
+
+# Verify nginx configuration syntax
+
+sudo nginx -t
+
+Expected:
+
+syntax is ok
+test is successful
+
+==================================================
+STEP 26: RESTART NGINX
+==================================================
+
+# Restart nginx web server
+
+sudo systemctl restart nginx
+
+==================================================
+STEP 27: CHECK NGINX STATUS
+==================================================
+
+# Verify nginx running
+
+sudo systemctl status nginx
+
+If active:
+
+Press q
+
+==================================================
+STEP 28: ALLOW FIREWALL PORTS
+==================================================
+
+# Allow SSH
+
+sudo ufw allow 22
+
+# Allow HTTP
+
+sudo ufw allow 80
+
+# Check firewall status
+
+sudo ufw status
+
+If inactive:
+No problem
+
+==================================================
+STEP 29: OPEN WEBSITE IN BROWSER
+==================================================
+
+Open:
+
+http://54.221.71.99
+
+==================================================
+STEP 30: PRACTICAL DEMONSTRATION
+==================================================
+
+Show:
+
+1. Product cards visible
+2. Add to cart
+3. Place order
+4. Enter customer name
+5. Enter customer email
+6. Order success message
+7. Recent orders table
+8. Refresh page
+9. Products still load
+
+==================================================
+STEP 31: SHOW BACKEND AND DATABASE WORKING
+==================================================
+
+# Product API
+
+curl http://localhost:5000/api/products
+
+# Orders API
+
+curl http://localhost:5000/api/orders
+
+==================================================
+STEP 32: USEFUL CHECKING COMMANDS
+==================================================
+
+# Check backend process
+
+pm2 status
+
+# View backend logs
+
+pm2 logs ecommerce-app
+
+# Check MongoDB Docker container
+
+docker ps
+
+# Check nginx status
+
+sudo systemctl status nginx
+
+# Check project files
+
+cd /home/ubuntu/ecommerce-mern
+
+ls
+
+ls public
+
+# Test backend
+
+curl http://localhost:5000
+
+# Test products API
+
+curl http://localhost:5000/api/products
+
+# Test orders API
+
+curl http://localhost:5000/api/orders
+
+==================================================
+PROJECT EXPLANATION FOR VIVA
+==================================================
+
+This is a full stack MERN based E-Commerce web application deployed on AWS EC2 Ubuntu server.
+
+Frontend:
+HTML, CSS, JavaScript
+
+Backend:
+Node.js + Express.js
+
+Database:
+MongoDB running inside Docker container
+
+PM2:
+Keeps Node.js backend running continuously
+
+Nginx:
+Acts as reverse proxy
+Listens on port 80
+Forwards requests to backend running on port 5000
+
+Main APIs:
+
+GET /api/products
+Returns all products
+
+POST /api/orders
+Stores customer orders
+
+GET /api/orders
+Returns recent customer orders
+
+Final Result:
+
+The E-Commerce application is publicly accessible using:
+
+http://54.221.71.99
+-->
